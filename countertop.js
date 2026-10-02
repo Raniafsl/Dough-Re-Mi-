@@ -10,10 +10,11 @@ const $ = (id) => document.getElementById(id),
   channelName = (c) =>
     ({ discord: "Discord", text: "text", instagram: "Instagram" })[c];
 
-function toast(text) {
+function toast(text, iconName) {
   const t = document.createElement("div");
   t.className = "toast";
-  t.textContent = text;
+  t.innerHTML = iconName ? icon(iconName, "ico ico-sm") : "";
+  t.append(text);
   $("toasts").append(t);
   setTimeout(() => t.remove(), 3600);
   while ($("toasts").children.length > 3) $("toasts").firstChild.remove();
@@ -39,6 +40,9 @@ function renderHeader() {
 // The card shows the finalised plan once Grandma has accepted it; tapping it
 // opens the plan sheet, where she can adjust the suggestions and finalise.
 let draft = [];
+// Plans saved before icons existed still find theirs by id.
+const iconFor = (item) =>
+  item.icon || Hub.plan().items.find((p) => p.id === item.id)?.icon || "cookie";
 
 function renderRecipe() {
   const final = Hub.finalPlan(),
@@ -47,7 +51,10 @@ function renderRecipe() {
   $("recipeEmoji").hidden = !!final;
   $("cardPlan").hidden = !final;
   $("cardPlan").innerHTML = items
-    .map((i) => `<li><b>${i.qty}</b> ${i.name}</li>`)
+    .map(
+      (i) =>
+        `<li>${icon(iconFor(i), "ico ico-sm")}<b>${i.qty}</b> ${i.name}</li>`,
+    )
     .join("");
   $("recipeNote").textContent = final
     ? `Finalised at ${final.at} · tap to change`
@@ -72,7 +79,7 @@ function renderPlanSheet() {
     const li = document.createElement("li");
     li.className = "plan-row" + (d.qty === 0 ? " skipped" : "");
     li.innerHTML = `
-      <span class="plan-emoji" aria-hidden="true">${d.emoji}</span>
+      <span class="plan-emoji">${icon(d.icon, "ico ico-lg")}</span>
       <span class="plan-what"><b>${d.name}</b><small>${d.when} · ${d.why}</small>
         ${d.qty !== d.suggested ? `<em>suggested ${d.suggested}</em>` : ""}</span>
       <span class="stepper" role="group" aria-label="${d.name}">
@@ -87,7 +94,7 @@ function renderPlanSheet() {
       .filter((d) => d.qty > 0)
       .map((d) => ({
         when: d.when,
-        emoji: d.emoji,
+        icon: d.icon,
         text: `Bake ${d.qty} ${d.name}`,
       })),
     toMinutes = (t) => {
@@ -98,7 +105,7 @@ function renderPlanSheet() {
     .sort((a, b) => toMinutes(a.when) - toMinutes(b.when))
     .map(
       (a) =>
-        `<li><time>${a.when}</time><span aria-hidden="true">${a.emoji}</span><span>${a.text}</span></li>`,
+        `<li><time>${a.when}</time>${icon(a.icon, "ico ico-sm")}<span>${a.text}</span></li>`,
     )
     .join("");
   $("finalisePlan").textContent = final
@@ -220,8 +227,8 @@ function renderParfaitSheet() {
             ? `${r.claims.length} seats saved`
             : `${r.claims.length} claimed · ${money(r.claims.reduce((t, c) => t + c.amount, 0))}`;
     li.innerHTML = `<span class="ring-kind"></span><span class="ring-text"><q></q><small></small></span>`;
-    li.querySelector(".ring-kind").textContent =
-      `${Hub.kinds[r.kind].emoji} ${r.time}`;
+    li.querySelector(".ring-kind").innerHTML =
+      `${icon(Hub.kinds[r.kind].icon, "ico ico-sm")} ${r.time}`;
     li.querySelector("q").textContent = r.text;
     li.querySelector("small").textContent = result;
     list.append(li);
@@ -234,10 +241,11 @@ Hub.onClaim((claim, ring) => {
   if (toastsThisRing++ < 4)
     toast(
       ring.kind === "poll"
-        ? `🗳️ ${claim.name} voted “${claim.choice}” on ${channelName(claim.channel)}`
+        ? `${claim.name} voted “${claim.choice}” on ${channelName(claim.channel)}`
         : ring.kind === "event"
-          ? `✅ ${claim.name} saved a seat on ${channelName(claim.channel)}`
-          : `🪙 ${claim.name} claimed on ${channelName(claim.channel)}`,
+          ? `${claim.name} saved a seat on ${channelName(claim.channel)}`
+          : `${claim.name} claimed on ${channelName(claim.channel)}`,
+      ring.kind === "poll" ? "poll" : ring.kind === "event" ? "check" : "coin",
     );
   if (claim.amount > 0) {
     renderParfait(1);
@@ -249,10 +257,11 @@ Hub.onRingDone((ring) => {
   toastsThisRing = 0;
   toast(
     ring.kind === "poll"
-      ? `🗳️ ${ring.votes?.length || 0} votes in. Tap the parfait to see the result.`
+      ? `${ring.votes?.length || 0} votes in. Tap the parfait to see the result.`
       : ring.kind === "event"
-        ? `✅ ${ring.claims.length} seats saved.`
-        : `🍪 ${ring.claims.length} claimed, ${money(ring.claims.reduce((s, c) => s + c.amount, 0))} in the parfait.`,
+        ? `${ring.claims.length} seats saved.`
+        : `${ring.claims.length} claimed, ${money(ring.claims.reduce((s, c) => s + c.amount, 0))} in the parfait.`,
+    ring.kind === "poll" ? "poll" : ring.kind === "event" ? "check" : "parfait",
   );
   renderParfait();
 });
@@ -281,7 +290,7 @@ $("finalisePlan").addEventListener("click", () => {
   renderRecipe();
   renderPlanSheet();
   wobble($("recipeCard"));
-  toast("📜 Today’s plan is final. Happy baking!");
+  toast("Today’s plan is final. Happy baking!", "scroll");
   setTimeout(() => $("planDialog").close(), 900);
 });
 $("parfaitCard").addEventListener("click", () => {

@@ -31,6 +31,7 @@ const Hub = (() => {
     items: [
       {
         id: "cookies",
+        icon: "cookie",
         emoji: "🍁",
         name: "Maple Cookies",
         qty: 30,
@@ -40,6 +41,7 @@ const Hub = (() => {
       },
       {
         id: "parfaits",
+        icon: "parfait",
         emoji: "🍂",
         name: "Fall Parfaits",
         qty: 12,
@@ -49,6 +51,7 @@ const Hub = (() => {
       },
       {
         id: "choc",
+        icon: "cupcake-choc",
         emoji: "🧁",
         name: "Chocolate Cupcakes",
         qty: 18,
@@ -58,6 +61,7 @@ const Hub = (() => {
       },
       {
         id: "lemon",
+        icon: "cupcake-lemon",
         emoji: "🍋",
         name: "Lemon Cupcakes",
         qty: 6,
@@ -70,19 +74,27 @@ const Hub = (() => {
       {
         when: "2:30 PM",
         emoji: "🔔",
+        icon: "bell",
         text: "Ring the bell for Student Fridays",
       },
       {
         when: "3:00 PM",
         emoji: "🎓",
+        icon: "cap",
         text: "Student Fridays: 15% off with a student card",
       },
       {
         when: "6:00 PM",
         emoji: "☕",
+        icon: "tea",
         text: "Finals study hall: tea refills on Grandma",
       },
-      { when: "8:30 PM", emoji: "🍪", text: "Ring the bell for any leftovers" },
+      {
+        when: "8:30 PM",
+        emoji: "🍪",
+        icon: "cookie",
+        text: "Ring the bell for any leftovers",
+      },
     ],
   };
 
@@ -90,24 +102,28 @@ const Hub = (() => {
   // Rule-based stand-in for the AI rewrite; same inputs and outputs.
   const kinds = {
     treats: {
+      icon: "cookie",
       emoji: "🍪",
       label: "Treats",
       head: "Leftover treats, rescued!",
       example: "Six parfaits left, half price.",
     },
     special: {
+      icon: "star",
       emoji: "⭐",
       label: "Special",
       head: "This week’s special",
       example: "Student Friday: 15% off with a student card, 3–7 PM.",
     },
     event: {
+      icon: "party",
       emoji: "🎉",
       label: "Event",
       head: "You’re invited",
       example: "Finals study hall tonight, free tea refills from 6.",
     },
     poll: {
+      icon: "poll",
       emoji: "🗳️",
       label: "Poll",
       head: "Help Grandma choose",
@@ -459,9 +475,10 @@ const Hub = (() => {
           hour: "numeric",
           minute: "2-digit",
         }),
-        items: items.map(({ id, emoji, name, qty, when }) => ({
+        items: items.map(({ id, emoji, icon, name, qty, when }) => ({
           id,
           emoji,
+          icon,
           name,
           qty,
           when,

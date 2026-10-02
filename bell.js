@@ -8,7 +8,7 @@ function renderKinds() {
   $("kinds").innerHTML = Object.entries(Hub.kinds)
     .map(
       ([k, v]) =>
-        `<button type="button" role="radio" aria-checked="${k === kind}" class="kind${k === kind ? " on" : ""}" data-kind="${k}"><span aria-hidden="true">${v.emoji}</span>${v.label}</button>`,
+        `<button type="button" role="radio" aria-checked="${k === kind}" class="kind${k === kind ? " on" : ""}" data-kind="${k}">${icon(v.icon, "ico ico-lg")}${v.label}</button>`,
     )
     .join("");
   $("saySentence").placeholder = Hub.kinds[kind].example;
@@ -16,7 +16,7 @@ function renderKinds() {
 
 function renderPreviews() {
   const m = Hub.rewrite(kind, $("saySentence").value);
-  $("instaEmoji").textContent = m.insta.emoji;
+  $("instaEmoji").innerHTML = icon(Hub.kinds[kind].icon, "ico ico-xl");
   $("instaHead").textContent = m.insta.head;
   $("instaText").textContent = m.insta.text;
   $("discordHead").textContent = m.discord.head;
