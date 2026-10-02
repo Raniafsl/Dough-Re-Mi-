@@ -2750,3 +2750,246 @@ select:focus-visible {
     width: min(100%, calc(100vw - 30px));
   }
 }
+
+/* ───────── Events & deals ───────── */
+.side-tag {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  background: #fff8e8;
+  border-radius: 10px;
+  padding: 2px 8px;
+}
+.promo-board {
+  margin-bottom: 26px;
+}
+.promo-board .titlebar,
+#events .workspace > article .titlebar {
+  background: var(--accent);
+  border-color: #c99aaa;
+}
+.event-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.event-card {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #fffdf5;
+  border: 1px solid #d3c4a6;
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: 0 3px 0 #e2d2b4;
+}
+.event-card:hover {
+  background: #fff6e3;
+}
+.event-card.active {
+  background: #f2dfe4;
+  border-color: #a86e80;
+  box-shadow: 0 3px 0 #c08c9d;
+}
+.event-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+.event-when {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  color: #8c455a;
+  text-transform: uppercase;
+}
+.event-card strong {
+  font:
+    400 22px Georgia,
+    serif;
+}
+.event-perk {
+  font-size: 14px;
+  line-height: 1.5;
+  flex: 1;
+}
+.event-count {
+  font-size: 13px;
+  color: #785f4c;
+  border-top: 1px dashed #d3c4a6;
+  padding-top: 8px;
+}
+.event-count b {
+  font:
+    600 18px "Space Grotesk",
+    sans-serif;
+  color: var(--text);
+}
+.promo-post {
+  margin-top: 20px;
+}
+.promo-post textarea {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 12px 14px;
+  border: 1px dashed #c2af91;
+  border-radius: 8px;
+  background: #fffdf5;
+  font:
+    italic 16px/1.5 Georgia,
+    serif;
+  color: inherit;
+  resize: vertical;
+}
+.promo-post .controls {
+  margin: 12px 0 0;
+}
+.signup-lede {
+  font-size: 15px;
+  margin: 0 0 18px;
+}
+.signup-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 140px auto;
+  gap: 12px;
+  align-items: end;
+}
+.coming-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.coming-list li {
+  background: #f4eedf;
+  border: 1px solid #d3c4a6;
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.coming-list li.mine {
+  background: #f2dfe4;
+  border-color: #a86e80;
+  font-weight: 700;
+}
+.coming-list li button {
+  border: 0;
+  background: none;
+  color: #8c455a;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 2px;
+}
+.prep-sheet .titlebar {
+  background: var(--secondary) !important;
+  border-color: #9cac90 !important;
+}
+.prep-sheet .big span {
+  font-size: 13px;
+}
+.prep-head {
+  margin-top: 18px;
+}
+.prep-row small {
+  display: block;
+  font-size: 11px;
+  color: #785f4c;
+}
+.prep-row b {
+  font:
+    600 18px "Space Grotesk",
+    sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+.prep-row.brew b {
+  font-size: 14px;
+}
+#prepCheck {
+  margin-top: 14px;
+}
+.verdict.warn {
+  background: #f2c4cf;
+}
+.event-history {
+  margin-top: 26px;
+}
+.history-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  margin-bottom: 18px;
+}
+.mini-chart svg {
+  display: block;
+  width: 100%;
+  font:
+    11px "DM Sans",
+    sans-serif;
+  letter-spacing: 0;
+}
+.mini-chart .col path {
+  fill: #9fbf98;
+}
+.mini-chart .col.current path {
+  fill: #e9b4c7;
+  stroke: #a86e80;
+  stroke-dasharray: 3 3;
+}
+.mini-chart .col:hover path {
+  fill: #6d896c;
+}
+.mini-chart .value {
+  fill: var(--text);
+  font-weight: 700;
+}
+.mini-chart .axis {
+  fill: #785f4c;
+}
+.mini-chart .baseline {
+  stroke: #b8a584;
+}
+.hbar {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr) 36px;
+  gap: 10px;
+  align-items: center;
+  font-size: 13px;
+  padding: 5px 0;
+}
+.hbar i {
+  height: 12px;
+  border-radius: 0 4px 4px 0;
+  background: #9fbf98;
+}
+.hbar b {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+#eventInsight {
+  margin: 4px 0 0;
+}
+@media (max-width: 1080px) {
+  .event-cards {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 740px) {
+  .signup-form,
+  .history-grid {
+    grid-template-columns: 1fr;
+  }
+  .hbar {
+    grid-template-columns: 110px minmax(0, 1fr) 30px;
+  }
+}
+@media print {
+  #events {
+    display: none !important;
+  }
+}

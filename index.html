@@ -51,6 +51,8 @@
             ⌘ &nbsp; Movement studio</button
           ><button class="tab" data-view="cost" aria-pressed="false">
             ♡ &nbsp; The cost of yes</button
+          ><button class="tab" data-view="events" aria-pressed="false">
+            📣 &nbsp; Events &amp; deals</button
           ><button class="tab" data-view="story" aria-pressed="false">
             ✿ &nbsp; Save Grandma’s day</button
           ><button class="tab" data-view="lab" aria-pressed="false">
@@ -591,6 +593,129 @@
             </article>
           </div>
         </section>
+        <section id="events" class="view" hidden>
+          <article class="window promo-board">
+            <div class="titlebar">
+              <span>📣 &nbsp; this_week_at_grandmas.exe</span
+              ><span class="side-tag">FOR CUSTOMERS</span>
+            </div>
+            <div class="window-body">
+              <div class="eyebrow">DEALS THAT BRING THE NEIGHBOURS IN</div>
+              <h2>This week at Grandma’s</h2>
+              <div class="event-cards" id="eventCards"></div>
+              <div class="promo-post">
+                <label for="promoText" class="mini-head"
+                  >PROMO POST FOR INSTAGRAM, THE WINDOW OR THE CAMPUS
+                  BOARD</label
+                >
+                <textarea id="promoText" rows="3" readonly></textarea>
+                <div class="controls">
+                  <button id="copyPromo" class="secondary">Copy the post</button
+                  ><span id="promoStatus" aria-live="polite"></span>
+                </div>
+              </div>
+            </div>
+          </article>
+          <div class="workspace">
+            <article class="window">
+              <div class="titlebar">
+                <span>♡ &nbsp; save_me_a_seat.exe</span
+                ><span class="side-tag">FOR CUSTOMERS</span>
+              </div>
+              <div class="window-body">
+                <div class="eyebrow" id="signupEyebrow">SIGN UP</div>
+                <h2 id="signupTitle">Save me a seat</h2>
+                <p class="signup-lede" id="signupLede"></p>
+                <form id="signupForm" class="signup-form">
+                  <label
+                    >Your first name<input
+                      id="signupName"
+                      type="text"
+                      maxlength="30"
+                      autocomplete="given-name"
+                      required
+                  /></label>
+                  <label
+                    >How many of you?<select id="signupSize">
+                      <option>1</option>
+                      <option>2</option>
+                      <option>3</option>
+                      <option>4</option>
+                      <option>5</option>
+                      <option>6</option>
+                    </select></label
+                  >
+                  <button class="primary" type="submit">♡ Count me in</button>
+                </form>
+                <p
+                  id="signupStatus"
+                  class="order-response"
+                  aria-live="polite"
+                ></p>
+                <div class="mini-head" id="comingHead">WHO’S COMING</div>
+                <ul id="comingList" class="coming-list"></ul>
+                <p class="footnote">
+                  Only a first name and party size are kept, in this browser.
+                  Names you add can be removed with ×.
+                </p>
+              </div>
+            </article>
+            <aside>
+              <article class="window savings prep-sheet">
+                <div class="titlebar">
+                  <span>✿ &nbsp; grandmas_prep_sheet</span
+                  ><span class="side-tag">FOR GRANDMA</span>
+                </div>
+                <div class="window-body">
+                  <div class="eyebrow" id="prepEyebrow">EXPECT ABOUT</div>
+                  <div class="big" id="expectedPeople">
+                    0<span>people</span>
+                  </div>
+                  <div class="metric-line">
+                    <span id="expectedMath"></span>
+                  </div>
+                  <div class="mini-head prep-head">MAKE AHEAD</div>
+                  <div id="prepList"></div>
+                  <div id="prepCheck" class="verdict"></div>
+                  <div class="quote-card">
+                    <span>DOES THE DEAL PAY?</span
+                    ><strong id="dealProfit">$0.00</strong>
+                    <small id="dealMath"></small>
+                  </div>
+                </div>
+              </article>
+            </aside>
+          </div>
+          <article class="window event-history">
+            <div class="titlebar">
+              <span>♡ &nbsp; past_events.csv</span
+              ><span class="side-tag">FOR GRANDMA</span>
+            </div>
+            <div class="window-body">
+              <div class="eyebrow">WHAT HAPPENED LAST TIME</div>
+              <h2 id="historyTitle">The last eight</h2>
+              <div class="history-grid">
+                <div>
+                  <div class="mini-head">PEOPLE WHO CAME, BY WEEK</div>
+                  <div id="turnoutChart" class="mini-chart" role="img"></div>
+                </div>
+                <div>
+                  <div class="mini-head">WHAT SELLS, PER EVENT</div>
+                  <div id="sellersChart" class="mini-chart" role="img"></div>
+                </div>
+              </div>
+              <div class="trend-stats" id="eventStats"></div>
+              <p id="eventInsight" class="verdict"></p>
+              <p class="footnote">
+                Past events are seeded demo history. Forecast = people signed up
+                × (past share who showed up + past walk-ins per sign-up).
+                Make-ahead amounts add a 10% cushion. “Old way” is preparing for
+                the busiest night so far; the difference is food that would
+                likely go unsold.
+              </p>
+            </div>
+          </article>
+        </section>
         <section id="story" class="view" hidden>
           <div class="story-banner">
             <img src="grandma-v2.png" alt="Grandma in her mint apron" />
@@ -902,6 +1027,7 @@
     <script src="app.js"></script>
     <script src="bakery-map.js"></script>
     <script src="pantry.js"></script>
+    <script src="events.js"></script>
     <script src="ledger.js"></script>
     <script src="parfait.js"></script>
     <script src="vote.js"></script>

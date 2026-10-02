@@ -21,6 +21,7 @@ const categories = {
   steps: { name: "Steps saved", tab: "movement" },
   quotes: { name: "Smarter quotes", tab: "cost" },
   pantry: { name: "Pantry", tab: "cost" },
+  events: { name: "Event prep", tab: "events" },
   rush: { name: "Rush order", tab: "story" },
 };
 
@@ -52,6 +53,13 @@ function ledgerLines() {
     label: "Pantry: bulk packs and less spoilage",
     cash: (monthly / 26) * days,
     math: `${money(monthly)} / month ÷ 26 working days × ${days}`,
+  });
+  const eventsWeekly = eventPrepSavingsPerWeek();
+  lines.push({
+    cat: "events",
+    label: "Events: prep to sign-ups, not the busiest night",
+    cash: (eventsWeekly / 6) * days,
+    math: `${money(eventsWeekly)} of unsold food avoided / week ÷ 6 working days × ${days}`,
   });
   // The rush-order demo is Milo's order; when it's rescued there, that
   // replaces any counter decision on the same order so it isn't counted twice.

@@ -33,6 +33,13 @@ const layers = [
     dot: "#e1c9a4",
   },
   {
+    id: "events",
+    name: "Maple drizzle",
+    from: "event prep",
+    color: "#b5651d",
+    dot: "#7a4211",
+  },
+  {
     id: "gifts",
     name: "Candied pecans",
     from: "neighbours’ gifts",
