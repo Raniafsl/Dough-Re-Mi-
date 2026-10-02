@@ -54,7 +54,7 @@
           ><button class="tab" data-view="story" aria-pressed="false">
             ✿ &nbsp; Save Grandma’s day</button
           ><button class="tab" data-view="lab" aria-pressed="false">
-            🍂 &nbsp; Fall Parfait lab
+            🍂 &nbsp; The new Fall Parfait
           </button>
         </nav>
         <section class="ledger-bar" aria-label="Savings ledger">
@@ -79,7 +79,7 @@
             >
               See the math</button
             ><button id="ledgerSpend" class="primary">
-              Spend it on parfaits →
+              Fund the new Fall Parfait →
             </button>
           </div>
         </section>
@@ -716,149 +716,6 @@
           </div>
         </section>
         <section id="lab" class="view" hidden>
-          <div class="workspace">
-            <article class="window planner">
-              <div class="titlebar">
-                <span>🍂 &nbsp; parfait_planner.exe</span><span>✧</span>
-              </div>
-              <div class="window-body">
-                <div class="eyebrow">
-                  PART 2 · TURN THE SAVINGS INTO PARFAITS
-                </div>
-                <h2 id="plannerTitle">Plan the new Fall Parfait</h2>
-                <div class="budget-row">
-                  <label
-                    >Grocery budget ($)<input
-                      id="budget"
-                      type="number"
-                      min="0"
-                      max="10000"
-                      step="0.01"
-                      value="40"
-                  /></label>
-                  <button id="useSavings" class="secondary">
-                    Use my savings
-                  </button>
-                  <label>Recipe<select id="recipePick"></select></label>
-                </div>
-                <div class="mini-head">
-                  IN-HOUSE GROCERY PRICES · EDIT THEM TO MATCH THE STORE
-                </div>
-                <div class="table-wrap">
-                  <table class="grocery">
-                    <thead>
-                      <tr>
-                        <th>Ingredient</th>
-                        <th>Pack price ($)</th>
-                        <th>Pack size</th>
-                        <th>Unit</th>
-                        <th>Per parfait</th>
-                        <th>Sec / parfait</th>
-                        <th><span class="sr-only">Remove</span></th>
-                      </tr>
-                    </thead>
-                    <tbody id="groceryRows"></tbody>
-                  </table>
-                </div>
-                <div class="controls">
-                  <button id="addIngredient" class="secondary">
-                    + Add ingredient</button
-                  ><button id="resetRecipe" class="secondary">
-                    Reset prices</button
-                  ><span id="plannerStatus" aria-live="polite"></span>
-                </div>
-                <p class="footnote">
-                  The store sells whole packs, so the planner buys whole packs
-                  and finds the most parfaits that fit the budget. Starting
-                  prices are guesses; replace them with the store’s shelf
-                  prices. “Sec / parfait” is the hands-on time for that layer
-                  and drives the assembly line below.
-                </p>
-              </div>
-            </article>
-            <aside>
-              <article class="window savings">
-                <div class="titlebar">
-                  <span>♡ &nbsp; shopping_list.txt</span><span>✧</span>
-                </div>
-                <div class="window-body">
-                  <div class="eyebrow">THIS BUDGET MAKES</div>
-                  <div class="big" id="maxParfaits">0<span>parfaits</span></div>
-                  <div class="metric-line">
-                    <span>Ingredient cost per parfait</span
-                    ><b id="perParfait">$0.00</b>
-                  </div>
-                  <div class="metric-line">
-                    <span>Left over after shopping</span
-                    ><b id="leftover">$0.00</b>
-                  </div>
-                  <div id="nextParfait" class="verdict"></div>
-                  <ol id="shoppingList" class="shopping-list"></ol>
-                  <div class="quote-card">
-                    <span>SELL IT AT A 65% MARGIN</span
-                    ><strong id="menuPrice">$0.00</strong>
-                    <small id="bakeryCompare"></small>
-                  </div>
-                  <button id="printList" class="secondary full">
-                    Print the shopping list
-                  </button>
-                </div>
-              </article>
-            </aside>
-          </div>
-          <article class="window line-window">
-            <div class="titlebar">
-              <span>✿ &nbsp; assembly_line.exe</span><span>✧</span>
-            </div>
-            <div class="window-body">
-              <div class="row">
-                <div>
-                  <div class="eyebrow">FOUR PAIRS OF HANDS, ONE LINE</div>
-                  <h2>Who stands where</h2>
-                </div>
-                <div class="line-inputs">
-                  <label
-                    >Parfaits to make<input
-                      id="lineTarget"
-                      type="number"
-                      min="1"
-                      max="500"
-                      value="10"
-                  /></label>
-                  <label
-                    >Minutes we have<input
-                      id="lineMinutes"
-                      type="number"
-                      min="1"
-                      max="240"
-                      value="45"
-                  /></label>
-                </div>
-              </div>
-              <div class="team-names" id="teamNames"></div>
-              <div class="line-viz" id="lineViz"></div>
-              <div class="route-compare line-compare">
-                <div>
-                  <span>EVERYONE MAKES THEIR OWN</span><b id="soloTime">—</b
-                  ><small>reaching across the whole table</small>
-                </div>
-                <div class="good">
-                  <span>ASSEMBLY LINE</span><b id="lineTime">—</b
-                  ><small id="lineRate">—</small>
-                </div>
-                <div class="best">
-                  <span>TIME SAVED</span><b id="lineSaved">—</b
-                  ><small id="lineFits">—</small>
-                </div>
-              </div>
-              <p class="footnote">
-                Layers are split into four stations in recipe order so the
-                busiest station is as light as possible; that station sets the
-                pace. Solo assembly adds 1.5 sec of reaching per ingredient.
-                Chopping and washing up are not included.
-              </p>
-            </div>
-          </article>
           <article class="window vote-window">
             <div class="titlebar">
               <span>♡ &nbsp; regulars_vote.exe</span><span>✧</span>
@@ -1036,7 +893,7 @@
     <script src="pantry.js"></script>
     <script src="ledger.js"></script>
     <script src="parfait.js"></script>
-    <script src="planner.js"></script>
+    <script src="vote.js"></script>
     <script src="testimonials.js"></script>
   </body>
 </html>

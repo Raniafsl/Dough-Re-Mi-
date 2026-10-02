@@ -2453,175 +2453,6 @@ select:focus-visible {
 }
 
 /* ───────── Fall Parfait lab ───────── */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-}
-.full {
-  width: 100%;
-  margin-top: 14px;
-}
-.budget-row {
-  display: flex;
-  gap: 12px;
-  align-items: flex-end;
-  flex-wrap: wrap;
-  margin-bottom: 22px;
-}
-.budget-row label {
-  flex: 1;
-  min-width: 160px;
-}
-.table-wrap {
-  overflow-x: auto;
-}
-.grocery {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-.grocery th {
-  text-align: left;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.6px;
-  color: #755b48;
-  padding: 0 6px 8px 0;
-  white-space: nowrap;
-}
-.grocery td {
-  padding: 3px 6px 3px 0;
-}
-.grocery input,
-.grocery select {
-  margin: 0;
-  padding: 8px 9px;
-  font-size: 14px;
-  min-width: 64px;
-}
-.grocery td:first-child input {
-  min-width: 150px;
-}
-.grocery .remove {
-  border: 0;
-  background: none;
-  font-size: 20px;
-  color: #8c455a;
-  width: 32px;
-  height: 36px;
-}
-.shopping-list {
-  list-style: none;
-  margin: 14px 0 0;
-  padding: 0;
-}
-.shopping-list li {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  font-size: 14px;
-  padding: 8px 0;
-  border-bottom: 1px dashed #cfbea0;
-}
-.shopping-list small {
-  color: #785f4c;
-  font-size: 12px;
-}
-.shopping-list em {
-  font-style: normal;
-  font-weight: 700;
-}
-.shopping-list .spare {
-  grid-column: 1 / -1;
-}
-.quote-card small {
-  font-size: 12px;
-}
-.line-window,
-.vote-window {
-  margin-top: 26px;
-}
-.line-inputs {
-  display: flex;
-  gap: 12px;
-}
-.line-inputs label {
-  width: 140px;
-  font-size: 12px;
-}
-.team-names {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 16px;
-}
-.team-names label {
-  font-size: 12px;
-}
-.line-viz {
-  display: flex;
-  align-items: stretch;
-  gap: 8px;
-}
-.line-viz .arrow {
-  align-self: center;
-  color: #a86e80;
-  font-size: 20px;
-}
-.station-card {
-  flex: 1;
-  background: #f4eedf;
-  border: 1px solid #d3c4a6;
-  border-radius: 10px;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.station-card.pace {
-  background: #f2dfe4;
-  border-color: #c8a0ad;
-}
-.station-card .who {
-  font-weight: 700;
-}
-.station-card .steps {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
-.station-card .step {
-  background: #fffdf5;
-  border: 1px solid #d3c4a6;
-  border-radius: 6px;
-  padding: 3px 7px;
-  font-size: 12px;
-}
-.station-card .load {
-  height: 6px;
-  background: #e4d9c3;
-  border-radius: 3px;
-  margin-top: auto;
-}
-.station-card .load i {
-  display: block;
-  height: 100%;
-  border-radius: 3px;
-  background: #6d896c;
-}
-.station-card.pace .load i {
-  background: #c46a88;
-}
-.station-card small {
-  font-size: 12px;
-  color: #785f4c;
-}
-.line-compare {
-  margin-top: 18px;
-}
 .vote-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -2728,12 +2559,6 @@ select:focus-visible {
   .vote-grid {
     grid-template-columns: 1fr;
   }
-  .line-viz {
-    flex-direction: column;
-  }
-  .line-viz .arrow {
-    transform: rotate(90deg);
-  }
 }
 @media (max-width: 740px) {
   nav {
@@ -2755,18 +2580,11 @@ select:focus-visible {
   .ledger-row > span:nth-child(3) {
     display: none;
   }
-  .ledger-totals,
-  .team-names {
+  .ledger-totals {
     grid-template-columns: 1fr 1fr;
   }
   .ledger-totals .grand {
     grid-column: 1 / -1;
-  }
-  .line-inputs {
-    width: 100%;
-  }
-  .line-inputs label {
-    flex: 1;
   }
 }
 @media print {
@@ -2785,25 +2603,4 @@ select:focus-visible {
   body.print-ledger #ledgerPanel .controls {
     display: none;
   }
-  body.print-list .desktop > header,
-  body.print-list main > :not(#lab) {
-    display: none !important;
-  }
-  body.print-list #lab {
-    display: block !important;
-  }
-  body.print-list #lab > :not(.workspace),
-  body.print-list #lab .workspace > article {
-    display: none !important;
-  }
-  body.print-list #lab aside,
-  body.print-list #lab aside .window {
-    display: block !important;
-  }
-  body.print-list #printList {
-    display: none;
-  }
-}
-.grocery select {
-  min-width: 84px;
 }

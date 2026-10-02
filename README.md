@@ -6,18 +6,16 @@ A whimsical bakery operations prototype: help Grandma see the hidden cost of a c
 
 ## The challenge
 
-A buildathon prompt: Grandma's Bakeria is a neighbourhood favourite for studying, first dates and reunions, but **The Bakery**, a nationwide chain, opened right next door with a suspiciously similar "Autumn Parfait". Build systems that save Grandma time and money so she can focus on a new Fall Parfait. The time and money a team saves becomes its budget for buying ingredients and making real parfaits in Part 2.
+A buildathon prompt: Grandma's Bakeria is a neighbourhood favourite for studying, first dates and reunions, but **The Bakery**, a nationwide chain, opened right next door with a suspiciously similar "Autumn Parfait". Build systems that save Grandma time and money so she can focus on a new Fall Parfait.
 
 ## Features
 
-- **Saved for Grandma (savings ledger):** one running total across every system, per day, week or month. Cash and time are listed separately, the math for each line is shown, and the receipt prints. **Spend it on parfaits →** carries the total into the planner.
+- **Saved for Grandma (savings ledger):** one running total across every system, per day, week or month. Cash and time are listed separately, the math for each line is shown, and the receipt prints. **Fund the new Fall Parfait →** jumps to the cup it fills.
 - **Movement studio:** a top-down floor plan of the bakery with a simulated motion sensor at every station. Pick a workflow (parfaits, a cupcake batch, opening the shop) and run a sensor day to get a live log, a heatmap and the busiest paths. The observed route is compared with the shortest route that keeps the task order, and a layout idea stages one station's supplies closer.
 - **The cost of yes:** custom-order costing with accept/pass/re-quote. Re-quoting before saying yes, or passing on a money-losing order, is logged in the ledger (accepting below cost is logged as a loss). Completed orders take ingredients off the pantry shelves and flag LOW/SHORT stock; a trends panel suggests savings.
 - **Save Grandma’s day:** the rush-order scenario and its savings receipt.
-- **Fall Parfait lab (Part 2):**
-  - *Parfait Planner*: type in the in-house store's pack prices and the planner finds the most parfaits the budget buys in whole packs, with a shopping list, cost per parfait, the next pack needed and a menu price compared with The Bakery's.
-  - *Assembly line*: splits the layers into four stations so the slowest station is as light as possible, then compares the time against everyone making their own.
-  - *Regulars' vote*: three candidate recipes; "Plan this one" loads that recipe into the planner.
+- **The new Fall Parfait:**
+  - *Regulars' vote*: neighbours pick which of three candidate recipes becomes the new Fall Parfait.
   - *Fill the cup*: each system's savings becomes a layer of the new parfait; neighbours' gifts add the topping.
 - **Kind words:** testimonials from the study crowd, first dates and reunions, and a comparison with The Bakery next door.
 
@@ -26,9 +24,8 @@ A buildathon prompt: Grandma's Bakeria is a neighbourhood favourite for studying
 1. *The Bakery opened next door.* Show the floor plan and run a sensor day: Grandma's steps become minutes and dollars.
 2. At the order counter, re-quote Poppy and pass on Milo's money-losing order; watch the ledger change.
 3. Rescue the rush order in **Save Grandma’s day**.
-4. Open **See the math**, then press **Spend it on parfaits →**.
-5. Enter the store's real prices, print the shopping list, and use the assembly line to make the parfaits.
-6. Serve the new Fall Parfait.
+4. Open **See the math**, then press **Fund the new Fall Parfait →**.
+5. Show the regulars' vote picking the recipe The Bakery can't copy.
 
 ## Run locally
 
@@ -51,7 +48,7 @@ Open http://localhost:8000. Stop the server with Ctrl+C.
 | `pantry.js` | Inventory, order completion and spending trends |
 | `parfait.js` | Fill the cup from savings and gifts |
 | `ledger.js` | Savings ledger, receipt and order wins |
-| `planner.js` | Parfait Planner, assembly line and recipe vote |
+| `vote.js` | Regulars' vote on the new Fall Parfait |
 | `testimonials.js` | Testimonials, ratings comparison and kind-word form |
 | `grandma-v2.png` | AI-generated Grandma character |
 | `bakery-reference.jpeg` | User-supplied storefront reference illustration |
@@ -77,12 +74,11 @@ With the default assumptions, incremental profit changes from **−$59.47 to $32
 - Freed labor capacity is not automatically cash savings.
 - Floor plan scale is 2 cm per pixel with a tray-carrying pace of 0.65 m/s. The efficient route is the shortest loop through every required station that keeps the workflow's ordering rules. Monthly figures use 26 working days and yearly figures 312.
 - The ledger counts each saving once: a rush-order rescue replaces any counter decision on the same order. Time is valued at the Movement studio hourly rate and shown separately from cash. A week is 6 working days.
-- The planner buys whole packs. Starting grocery prices are guesses meant to be replaced with the store's real prices. The Bakery's $7.49 Autumn Parfait price is fictional. Solo assembly adds 1.5 s of reaching per ingredient; chopping and washing up aren't modelled.
 - Recipes are per cupcake (cake + frosting), with one box per dozen. Bulk-buy ideas only count items used up before they spoil; spoilage ideas count half the excess stock beyond shelf life as likely waste.
 
 ## Prototype limits
 
-Movement and motion sensors are simulated; there is no camera, hardware sensor or video tracking. Customer orders are local demo scenarios. Quote actions do not send messages. Pantry stock, ledger wins, planner prices, votes, donations and added testimonials are saved only in the visitor's browser (localStorage). Donations are demo pledges and take no payment. There is no backend or authentication. Testimonials, ratings and the chain comparison are sample content for the fictional story. The Grandma story is fictional. Google Fonts loads externally; system fonts are used as fallback.
+Movement and motion sensors are simulated; there is no camera, hardware sensor or video tracking. Customer orders are local demo scenarios. Quote actions do not send messages. Pantry stock, ledger wins, votes, donations and added testimonials are saved only in the visitor's browser (localStorage). Donations are demo pledges and take no payment. There is no backend or authentication. Testimonials, ratings and the chain comparison are sample content for the fictional story. The Grandma story is fictional. Google Fonts loads externally; system fonts are used as fallback.
 
 ## Artwork
 

@@ -1,4 +1,4 @@
-// One running total of what the systems save Grandma: the Part 2 grocery budget.
+// One running total of what the systems save Grandma.
 const LEDGER_KEY = "drm-ledger-v1",
   periods = { day: 1, week: 6, month: 26 };
 
@@ -131,7 +131,6 @@ function refreshLedger() {
     <div><span>CASH</span><b>${money(t.cash)}</b></div>
     <div><span>TIME FREED</span><b>${hoursMinutes(t.minutes)}</b><small>${money(t.timeValue)} of labour</small></div>
     <div class="grand"><span>TOTAL FOR THE PARFAIT FUND</span><b>${money(t.total)}</b></div>`;
-  $("useSavings").textContent = `Use my savings (${money(t.total)})`;
   ledgerListeners.forEach((fn) => fn(t));
 }
 function queueLedger() {
@@ -202,8 +201,9 @@ $("ledgerChips").addEventListener("click", (e) => {
 });
 $("ledgerSpend").addEventListener("click", () => {
   showView("lab");
-  $("useSavings").click();
-  $("lab").scrollIntoView({ behavior: "smooth", block: "start" });
+  document
+    .querySelector(".parfait-fund")
+    .scrollIntoView({ behavior: "smooth", block: "start" });
 });
 $("ledgerReset").addEventListener("click", () => {
   ledger.wins = [];
