@@ -383,7 +383,11 @@ const Hub = (() => {
       modeListeners.forEach((fn) => fn(mode));
     });
   }
-  if (location.protocol.startsWith("http"))
+  // GitHub Pages and plain files have no server, so they stay in demo mode.
+  if (
+    location.protocol.startsWith("http") &&
+    !location.hostname.endsWith("github.io")
+  )
     fetch("/api/health")
       .then((r) => (r.ok ? r.json() : null))
       .then((h) => h?.ok && goLive(h))
