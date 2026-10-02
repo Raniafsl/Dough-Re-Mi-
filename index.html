@@ -6,7 +6,7 @@
     <title>Countertop · Grandma’s Bakeria</title>
     <meta
       name="description"
-      content="Grandma's countertop: a recipe card that plans the day, a shop bell that tells students everywhere, and a parfait that builds as they claim."
+      content="Grandma's countertop: a recipe card that plans the day, a shop bell that tells students everywhere, and a parfait that fills with the day’s takings."
     />
     <link
       rel="icon"
@@ -32,7 +32,10 @@
         </div>
         <div class="today">
           <span id="todayDate"></span>
-          <span class="chip">📚 Midterms week</span>
+          <span class="chip"
+            ><i data-icon="books" class="ico ico-sm"></i> Midterms week</span
+          >
+          <span class="chip mode" id="modeChip">Demo mode</span>
         </div>
       </header>
 
@@ -44,214 +47,220 @@
           <li>Earn</li>
         </ol>
 
-        <section class="board" aria-label="Grandma's three cards">
-          <svg
-            class="twine"
-            viewBox="0 0 1000 80"
-            preserveAspectRatio="none"
-            aria-hidden="true"
-          >
-            <path d="M0 18 Q250 70 500 40 Q750 10 1000 52" />
-          </svg>
+        <div class="shopfront">
+          <span class="arch-sign" aria-hidden="true">Grandma’s Bakeria</span>
+          <span class="valance-rail" aria-hidden="true"></span>
+          <span class="valance" aria-hidden="true"></span>
+          <section class="board" aria-label="Grandma's three cards">
+            <svg
+              class="twine"
+              viewBox="0 0 1000 80"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              <path d="M0 18 Q250 70 500 40 Q750 10 1000 52" />
+            </svg>
 
-          <!-- 1 · Recipe card -->
-          <div class="hang" style="--tilt: -2.5deg; --delay: 0s">
-            <span class="peg" aria-hidden="true"></span>
-            <div class="recipe" id="recipe">
-              <div class="recipe-inner">
-                <button
-                  class="face front recipe-front"
-                  id="recipeFront"
-                  aria-label="Recipe card: tap to see today's plan"
+            <!-- 1 · Recipe card -->
+            <div class="hang" style="--tilt: -2.5deg; --delay: 0s">
+              <span class="peg" aria-hidden="true"></span>
+              <button
+                class="face hang-card recipe-card"
+                id="recipeCard"
+                aria-haspopup="dialog"
+              >
+                <span class="card-step">1 · PLAN</span>
+                <span class="stamp" id="planStamp" hidden>✓ Final</span>
+                <span class="emoji" id="recipeEmoji"
+                  ><i data-icon="scroll" class="ico ico-xl"></i
+                ></span>
+                <span class="hand big-hand" id="recipeHeading"
+                  >Today’s bake</span
                 >
-                  <span class="card-step">1 · PLAN</span>
-                  <span class="emoji" aria-hidden="true">📜</span>
-                  <span class="hand big-hand">Today’s bake</span>
-                  <span class="front-note" id="recipeNote"
-                    >Tap to see what to make</span
-                  >
-                  <span class="stamp" id="planStamp" hidden>✓ Planned</span>
-                </button>
-                <div
-                  class="face back recipe-back"
-                  id="recipeBack"
+                <ul class="card-plan" id="cardPlan" hidden></ul>
+                <span class="front-note" id="recipeNote"
+                  >Tap to see today’s plan</span
+                >
+              </button>
+            </div>
+
+            <!-- 2 · Shop bell -->
+            <div class="hang" style="--tilt: 1.5deg; --delay: 0.6s">
+              <span class="peg" aria-hidden="true"></span>
+              <button
+                class="face hang-card bell-card"
+                id="bellCard"
+                aria-haspopup="dialog"
+              >
+                <span class="card-step">2 · RING</span>
+                <svg
+                  class="bell"
+                  id="bellIcon"
+                  viewBox="0 0 200 170"
                   aria-hidden="true"
                 >
-                  <span class="card-step">TODAY</span>
-                  <ul class="plan" id="planList"></ul>
-                  <p class="reason" id="planReason"></p>
-                  <button class="big-btn" id="soundsGood">
-                    Sounds good 👍
-                  </button>
-                  <button class="link-btn" id="flipBack">Flip back</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 2 · Shop bell -->
-          <div class="hang" style="--tilt: 1.5deg; --delay: 0.6s">
-            <span class="peg" aria-hidden="true"></span>
-            <button
-              class="face hang-card bell-card"
-              id="bellCard"
-              aria-haspopup="dialog"
-            >
-              <span class="card-step">2 · RING</span>
-              <svg
-                class="bell"
-                id="bellIcon"
-                viewBox="0 0 200 170"
-                aria-hidden="true"
-              >
-                <defs>
-                  <linearGradient id="brass" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0" stop-color="#f6dc8c" />
-                    <stop offset=".45" stop-color="#d9a93f" />
-                    <stop offset="1" stop-color="#9c6f1e" />
-                  </linearGradient>
-                </defs>
-                <g class="bell-body">
+                  <defs>
+                    <linearGradient id="brass" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0" stop-color="#f6dc8c" />
+                      <stop offset=".45" stop-color="#d9a93f" />
+                      <stop offset="1" stop-color="#9c6f1e" />
+                    </linearGradient>
+                  </defs>
+                  <g class="bell-body">
+                    <rect
+                      x="92"
+                      y="20"
+                      width="16"
+                      height="16"
+                      rx="5"
+                      fill="#9c6f1e"
+                    />
+                    <rect
+                      x="80"
+                      y="12"
+                      width="40"
+                      height="12"
+                      rx="6"
+                      fill="url(#brass)"
+                      stroke="#7a5414"
+                      stroke-width="2"
+                    />
+                    <path
+                      d="M38 128 C38 70 66 40 100 40 C134 40 162 70 162 128 Z"
+                      fill="url(#brass)"
+                      stroke="#7a5414"
+                      stroke-width="3"
+                    />
+                    <path
+                      d="M60 110 C62 80 76 60 96 54"
+                      fill="none"
+                      stroke="#fff6d4"
+                      stroke-width="7"
+                      stroke-linecap="round"
+                      opacity=".7"
+                    />
+                  </g>
                   <rect
-                    x="92"
-                    y="20"
-                    width="16"
-                    height="16"
-                    rx="5"
-                    fill="#9c6f1e"
+                    x="22"
+                    y="128"
+                    width="156"
+                    height="18"
+                    rx="9"
+                    fill="#6b4a3a"
                   />
                   <rect
-                    x="80"
-                    y="12"
-                    width="40"
-                    height="12"
-                    rx="6"
-                    fill="url(#brass)"
-                    stroke="#7a5414"
+                    x="34"
+                    y="146"
+                    width="132"
+                    height="10"
+                    rx="5"
+                    fill="#4f3528"
+                  />
+                </svg>
+                <span class="hand mid-hand">Ring the bell</span>
+                <span class="front-note">Tell students everywhere</span>
+              </button>
+            </div>
+
+            <!-- 3 · The parfait -->
+            <div class="hang" style="--tilt: -1deg; --delay: 1.2s">
+              <span class="peg" aria-hidden="true"></span>
+              <button
+                class="face hang-card parfait-card"
+                id="parfaitCard"
+                aria-haspopup="dialog"
+              >
+                <span class="card-step">3 · EARN</span>
+                <svg
+                  class="parfait-glass"
+                  id="parfaitIcon"
+                  viewBox="0 0 200 230"
+                  aria-hidden="true"
+                >
+                  <defs>
+                    <clipPath id="glassInside">
+                      <path
+                        d="M34 32 H166 L144 178 Q141 194 124 194 H76 Q59 194 56 178 Z"
+                      />
+                    </clipPath>
+                  </defs>
+                  <ellipse cx="100" cy="222" rx="48" ry="7" fill="#dcc6a3" />
+                  <rect
+                    x="92"
+                    y="194"
+                    width="16"
+                    height="26"
+                    rx="4"
+                    fill="#efe4d0"
+                    stroke="#b8a584"
                     stroke-width="2"
                   />
                   <path
-                    d="M38 128 C38 70 66 40 100 40 C134 40 162 70 162 128 Z"
-                    fill="url(#brass)"
-                    stroke="#7a5414"
-                    stroke-width="3"
+                    d="M34 32 H166 L144 178 Q141 194 124 194 H76 Q59 194 56 178 Z"
+                    fill="#fffaf0"
+                  />
+                  <g clip-path="url(#glassInside)" id="parfaitLayers"></g>
+                  <g id="parfaitTop"></g>
+                  <path
+                    d="M34 32 H166 L144 178 Q141 194 124 194 H76 Q59 194 56 178 Z"
+                    fill="none"
+                    stroke="#9c8a73"
+                    stroke-width="4"
                   />
                   <path
-                    d="M60 110 C62 80 76 60 96 54"
-                    fill="none"
-                    stroke="#fff6d4"
+                    d="M50 44 L66 168"
+                    stroke="#fff"
                     stroke-width="7"
                     stroke-linecap="round"
-                    opacity=".7"
+                    opacity=".6"
                   />
-                </g>
-                <rect
-                  x="22"
-                  y="128"
-                  width="156"
-                  height="18"
-                  rx="9"
-                  fill="#6b4a3a"
-                />
-                <rect
-                  x="34"
-                  y="146"
-                  width="132"
-                  height="10"
-                  rx="5"
-                  fill="#4f3528"
-                />
-              </svg>
-              <span class="hand mid-hand">Ring the bell</span>
-              <span class="front-note">Tell students everywhere</span>
-            </button>
-          </div>
+                  <path
+                    d="M138 20 L120 120"
+                    stroke="#b8a584"
+                    stroke-width="5"
+                    stroke-linecap="round"
+                  />
+                  <ellipse
+                    cx="139"
+                    cy="18"
+                    rx="7"
+                    ry="10"
+                    fill="#d9cbb8"
+                    stroke="#b8a584"
+                    stroke-width="2"
+                    transform="rotate(12 139 18)"
+                  />
+                </svg>
+                <span class="hand mid-hand" id="parfaitTonight"
+                  >$0 tonight</span
+                >
+                <span class="front-note" id="parfaitNote"
+                  >Fills up as you scan receipts</span
+                >
+              </button>
+            </div>
+          </section>
 
-          <!-- 3 · The parfait -->
-          <div class="hang" style="--tilt: -1deg; --delay: 1.2s">
-            <span class="peg" aria-hidden="true"></span>
+          <section class="counter">
             <button
-              class="face hang-card parfait-card"
-              id="parfaitCard"
-              aria-haspopup="dialog"
+              class="grandma"
+              id="grandma"
+              aria-label="Say hello to Grandma"
             >
-              <span class="card-step">3 · EARN</span>
-              <svg
-                class="parfait-glass"
-                id="parfaitIcon"
-                viewBox="0 0 200 230"
-                aria-hidden="true"
-              >
-                <defs>
-                  <clipPath id="glassInside">
-                    <path
-                      d="M34 32 H166 L144 178 Q141 194 124 194 H76 Q59 194 56 178 Z"
-                    />
-                  </clipPath>
-                </defs>
-                <ellipse cx="100" cy="222" rx="48" ry="7" fill="#dcc6a3" />
-                <rect
-                  x="92"
-                  y="194"
-                  width="16"
-                  height="26"
-                  rx="4"
-                  fill="#efe4d0"
-                  stroke="#b8a584"
-                  stroke-width="2"
-                />
-                <path
-                  d="M34 32 H166 L144 178 Q141 194 124 194 H76 Q59 194 56 178 Z"
-                  fill="#fffaf0"
-                />
-                <g clip-path="url(#glassInside)" id="parfaitLayers"></g>
-                <g id="parfaitTop"></g>
-                <path
-                  d="M34 32 H166 L144 178 Q141 194 124 194 H76 Q59 194 56 178 Z"
-                  fill="none"
-                  stroke="#9c8a73"
-                  stroke-width="4"
-                />
-                <path
-                  d="M50 44 L66 168"
-                  stroke="#fff"
-                  stroke-width="7"
-                  stroke-linecap="round"
-                  opacity=".6"
-                />
-                <path
-                  d="M138 20 L120 120"
-                  stroke="#b8a584"
-                  stroke-width="5"
-                  stroke-linecap="round"
-                />
-                <ellipse
-                  cx="139"
-                  cy="18"
-                  rx="7"
-                  ry="10"
-                  fill="#d9cbb8"
-                  stroke="#b8a584"
-                  stroke-width="2"
-                  transform="rotate(12 139 18)"
-                />
-              </svg>
-              <span class="hand mid-hand" id="parfaitTonight">$0 tonight</span>
-              <span class="front-note" id="parfaitNote"
-                >Builds up as students claim</span
-              >
+              <img src="grandma-v2.png" alt="" />
             </button>
-          </div>
-        </section>
-
-        <section class="counter" aria-hidden="true">
-          <img class="counter-grandma" src="grandma-v2.png" alt="" />
-          <div class="counter-top"></div>
-          <div class="counter-front">
-            <span class="cake-stand"><i></i></span>
-            <span class="counter-plant"></span>
-          </div>
-        </section>
+            <p class="grandma-says" id="grandmaSays" role="status" hidden></p>
+            <div class="counter-top" aria-hidden="true"></div>
+            <div class="counter-front" aria-hidden="true">
+              <span class="cake-stand"><i></i></span>
+            </div>
+            <button class="letter" id="letterBtn" aria-haspopup="dialog">
+              <i data-icon="letter" class="ico ico-lg"></i>
+              <span class="letter-label">Monthly check-in</span>
+              <span class="badge-new" id="letterBadge" hidden>New report</span>
+            </button>
+          </section>
+        </div>
 
         <div class="toasts" id="toasts" aria-live="polite"></div>
       </main>
@@ -273,12 +282,77 @@
       </footer>
     </div>
 
+    <!-- Today's plan -->
+    <dialog class="sheet" id="planDialog" aria-labelledby="planTitle">
+      <form method="dialog" class="sheet-close">
+        <button aria-label="Close">×</button>
+      </form>
+      <h2 id="planTitle">
+        <i data-icon="scroll" class="ico ico-md"></i> Today’s bake
+      </h2>
+      <p class="plan-reason" id="planReason"></p>
+      <div class="plan-grid">
+        <section aria-labelledby="bakeHead">
+          <h3 id="bakeHead">What to make</h3>
+          <ul class="plan-rows" id="planRows"></ul>
+        </section>
+        <section aria-labelledby="agendaHead">
+          <h3 id="agendaHead">Today’s agenda</h3>
+          <ol class="agenda" id="agendaList"></ol>
+        </section>
+      </div>
+      <div class="plan-actions">
+        <button type="button" class="secondary-btn" id="useSuggested">
+          Use the suggestions
+        </button>
+        <button type="button" class="big-btn" id="finalisePlan">
+          Finalise today’s plan ✓
+        </button>
+        <p id="planStatus" aria-live="polite"></p>
+      </div>
+    </dialog>
+
+    <!-- Monthly check-in -->
+    <dialog class="sheet" id="monthlyDialog" aria-labelledby="monthlyTitle">
+      <form method="dialog" class="sheet-close">
+        <button aria-label="Close">×</button>
+      </form>
+      <h2 id="monthlyTitle">
+        <i data-icon="letter" class="ico ico-md"></i> Monthly check-in
+      </h2>
+      <p class="monthly-lede" id="monthlyLede"></p>
+      <div class="monthly-grid">
+        <section aria-labelledby="reportHead">
+          <h3 id="reportHead">Latest report</h3>
+          <div id="reportBox"></div>
+        </section>
+        <section aria-labelledby="nextHead">
+          <h3 id="nextHead">Next poll</h3>
+          <label class="field"
+            >Question<input id="monthlyQuestion" type="text" maxlength="200"
+          /></label>
+          <div class="option-fields" id="monthlyOptions"></div>
+          <div class="plan-actions">
+            <button type="button" class="secondary-btn" id="monthlySave">
+              Save for next month
+            </button>
+            <button type="button" class="big-btn" id="monthlySendNow">
+              Send it now
+            </button>
+          </div>
+          <p class="fine" id="monthlyStatus" aria-live="polite"></p>
+        </section>
+      </div>
+    </dialog>
+
     <!-- The shop bell -->
     <dialog class="sheet" id="bellDialog" aria-labelledby="bellTitle">
       <form method="dialog" class="sheet-close">
         <button aria-label="Close">×</button>
       </form>
-      <h2 id="bellTitle">🔔 What are you ringing about?</h2>
+      <h2 id="bellTitle">
+        <i data-icon="bell" class="ico ico-md"></i> What are you ringing about?
+      </h2>
       <div
         class="kinds"
         id="kinds"
@@ -301,15 +375,15 @@
             hidden
             aria-label="Say it out loud"
           >
-            🎙️
+            <i data-icon="mic" class="ico ico-md"></i>
           </button>
         </span>
       </label>
       <div class="previews">
         <article class="preview insta">
           <header>
-            <span class="avatar">🧁</span><b>grandmasbakeria</b
-            ><small>Instagram</small>
+            <span class="avatar"><i data-icon="cupcake" class="ico"></i></span
+            ><b>grandmasbakeria</b><small>Instagram</small>
           </header>
           <div class="insta-tile">
             <span class="insta-emoji" id="instaEmoji"></span
@@ -319,8 +393,10 @@
         </article>
         <article class="preview discord">
           <header>
-            <span class="avatar disc">🧁</span><b>Grandma’s Bakeria</b
-            ><span class="bot">BOT</span><small>#campus-eats</small>
+            <span class="avatar disc"
+              ><i data-icon="cupcake" class="ico"></i></span
+            ><b>Grandma’s Bakeria</b><span class="bot">BOT</span
+            ><small>#campus-eats</small>
           </header>
           <div class="embed">
             <strong id="discordHead"></strong>
@@ -334,42 +410,102 @@
         </article>
       </div>
       <div class="ring-row">
-        <button class="ring-btn" id="ringBtn">🔔 Ring the bell</button>
+        <button class="ring-btn" id="ringBtn">
+          <i data-icon="bell" class="ico ico-md"></i> Ring the bell
+        </button>
         <p id="ringStatus" aria-live="polite"></p>
       </div>
+      <section class="rung-today">
+        <h3>Rung today</h3>
+        <ul class="rings" id="ringList"></ul>
+      </section>
     </dialog>
 
-    <!-- The parfait sheet -->
+    <!-- The parfait sheet: today's takings, from scanned receipts -->
     <dialog class="sheet" id="parfaitDialog" aria-labelledby="parfaitTitle">
       <form method="dialog" class="sheet-close">
         <button aria-label="Close">×</button>
       </form>
-      <h2 id="parfaitTitle">🍨 Tonight’s parfait</h2>
+      <h2 id="parfaitTitle">
+        <i data-icon="parfait" class="ico ico-md"></i> Today’s takings
+      </h2>
+      <div class="scan-actions">
+        <label class="big-btn scan-btn">
+          <i data-icon="receipt" class="ico ico-md"></i> Scan a receipt
+          <input
+            id="receiptFile"
+            type="file"
+            accept="image/*"
+            capture="environment"
+            class="sr-only"
+          />
+        </label>
+        <button type="button" class="secondary-btn" id="typeAmount">
+          Type it in
+        </button>
+        <button type="button" class="link-btn" id="sampleReceipt">
+          Try a sample receipt
+        </button>
+      </div>
+      <div class="scan-result" id="scanResult" hidden>
+        <img id="receiptPreview" alt="The receipt being read" hidden />
+        <div class="scan-form">
+          <p id="scanStatus" aria-live="polite"></p>
+          <label class="field"
+            >Total on the receipt ($)<input
+              id="saleAmount"
+              type="number"
+              min="0"
+              step="0.01"
+              inputmode="decimal"
+          /></label>
+          <fieldset class="method-picks">
+            <legend>Paid by</legend>
+            <label
+              ><input type="radio" name="saleMethod" value="card" /> Card</label
+            >
+            <label
+              ><input type="radio" name="saleMethod" value="cash" /> Cash</label
+            >
+          </fieldset>
+          <p class="mini-head" id="saleItemsHead" hidden>Items I could read</p>
+          <ul class="sale-items" id="saleItems"></ul>
+          <div class="plan-actions">
+            <button type="button" class="big-btn" id="logSale">
+              Add to today ✓
+            </button>
+            <button type="button" class="link-btn" id="cancelSale">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
       <div class="totals" id="totals"></div>
       <div class="sheet-grid">
         <section>
-          <h3>Where the claims came from</h3>
-          <div id="channelBars"></div>
+          <h3>What sold today</h3>
+          <ul class="sold" id="soldList"></ul>
         </section>
         <section>
-          <h3>What sold tonight</h3>
-          <ul class="sold" id="soldList"></ul>
+          <h3>Card or cash</h3>
+          <div id="methodBars"></div>
         </section>
       </div>
       <section>
-        <h3>Today’s rings</h3>
-        <ul class="rings" id="ringList"></ul>
+        <h3>Today’s receipts</h3>
+        <ul class="receipts" id="receiptList"></ul>
       </section>
       <p class="fine">
-        Claims and sends are simulated for this demo, and everything is saved in
-        this browser only.
+        Receipts are read on this device; check the total before adding it.
         <button class="link-btn" id="newDay">Start a fresh day</button>
       </p>
     </dialog>
 
     <script src="hub.js"></script>
+    <script src="icons.js"></script>
     <script src="countertop.js"></script>
     <script src="bell.js"></script>
+    <script src="receipts.js"></script>
     <script src="cafe-scene.js"></script>
   </body>
 </html>

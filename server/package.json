@@ -1,0 +1,15 @@
+{
+  "name": "countertop-server",
+  "private": true,
+  "type": "module",
+  "description": "Countertop hub server and Discord bot for Grandma's Bakeria",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env server.js"
+  },
+  "engines": {
+    "node": ">=22.9"
+  },
+  "dependencies": {
+    "discord.js": "^14.16.0"
+  }
+}

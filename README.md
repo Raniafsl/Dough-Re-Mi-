@@ -2,17 +2,17 @@
 
 **Countertop** is Grandma’s Bakeria’s home screen: no menus, no tab bar, just three cards hanging over her counter.
 
-| Card           | Grandma’s problem                                        | What it does                                                            |
-| -------------- | -------------------------------------------------------- | ----------------------------------------------------------------------- |
-| 📜 Recipe card | She guesses what to bake, so she wastes food or runs out | Flips to today’s plan: what to bake, how many, and one plain reason     |
-| 🔔 Shop bell   | The Bakery can afford marketing; she can’t               | One sentence becomes Instagram, Discord and text messages, sent at once |
-| 🍨 Parfait     | She can’t see what’s working                             | Builds a layer for every claim, with tonight’s and this week’s totals   |
+| Card           | Grandma’s problem                                        | What it does                                                                                                     |
+| -------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| 📜 Recipe card | She guesses what to bake, so she wastes food or runs out | Flips to today’s plan: what to bake, how many, and one plain reason                                              |
+| 🔔 Shop bell   | The Bakery can afford marketing; she can’t               | One sentence becomes Instagram, Discord and text messages, sent at once                                          |
+| 🍨 Parfait     | She can’t see what’s working                             | She scans each receipt; the parfait builds toward today’s goal, with card/cash, best sellers and the week so far |
 
-**Plan, Ring, Earn.** Students never download anything: they get the message where they already are and claim it there.
+**Plan, Ring, Earn.** Students never download anything: the bell’s message reaches them where they already are, and the parfait shows what the day actually brought in.
 
 Open `index.html` for the Countertop. The earlier, fuller prototype is the **back office** at `studio.html`. How the four parts fit together, and the live-mode plan with the Discord bot, are in [CONTRACT.md](CONTRACT.md).
 
-In this build the sends and the students' claims are simulated in the browser (the stub hub). The illustrated café scene is the footer of both pages.
+Run the backend (`cd server && npm install && npm start`, then open http://localhost:3000) for the real thing: a SQLite database, the Discord bot, receipts that sync to every screen, and the automatic monthly check-in. Opened as a plain file, the Countertop runs in demo mode with simulated replies. The illustrated café scene is the footer of both pages.
 
 ---
 
@@ -55,26 +55,27 @@ Open http://localhost:8000. Stop the server with Ctrl+C.
 
 ## Files
 
-| File                               | Purpose                                                         |
-| ---------------------------------- | --------------------------------------------------------------- |
-| `index.html`                       | Countertop: recipe card, shop bell, parfait                     |
-| `hub.js`                           | Part 3 · the hub: plan data, rewriting, rings and claims (stub) |
-| `countertop.js` / `countertop.css` | Part 1 · home screen, recipe card and parfait                   |
-| `bell.js`                          | Part 2 · the bell: voice, four buttons, three previews          |
-| `cafe-scene.css`                   | Styles for the illustrated footer                               |
-| `studio.html`                      | Back office: workspaces, kitchen map and order counter          |
-| `style.css`                        | Theme, responsive layout and print styling                      |
-| `app.js`                           | Tabs, customer flow and financial calculations                  |
-| `bakery-map.js`                    | Floor plan, simulated motion sensors and route optimizer        |
-| `pantry.js`                        | Inventory, order completion and spending trends                 |
-| `parfait.js`                       | Fill the cup from savings and gifts                             |
-| `events.js`                        | Events & deals: promos, sign-ups, forecast and prep list        |
-| `ledger.js`                        | Savings ledger, receipt and order wins                          |
-| `vote.js`                          | Regulars' vote on the new Fall Parfait                          |
-| `testimonials.js`                  | Testimonials, ratings comparison and kind-word form             |
-| `cafe-scene.js`                    | Illustrated café scene above the footer                         |
-| `grandma-v2.png`                   | AI-generated Grandma character                                  |
-| `bakery-reference.jpeg`            | User-supplied storefront reference illustration                 |
+| File                               | Purpose                                                                                   |
+| ---------------------------------- | ----------------------------------------------------------------------------------------- |
+| `index.html`                       | Countertop: recipe card, shop bell, parfait                                               |
+| `hub.js`                           | Part 3 · the hub: plan data, rewriting, broadcasts, sales, votes and the monthly check-in |
+| `countertop.js` / `countertop.css` | Part 1 · home screen, recipe card and parfait                                             |
+| `bell.js`                          | Part 2 · the bell: voice, four buttons, three previews                                    |
+| `receipts.js`                      | Receipt scanning (Tesseract OCR in the browser)                                           |
+| `cafe-scene.css`                   | Styles for the illustrated footer                                                         |
+| `studio.html`                      | Back office: workspaces, kitchen map and order counter                                    |
+| `style.css`                        | Theme, responsive layout and print styling                                                |
+| `app.js`                           | Tabs, customer flow and financial calculations                                            |
+| `bakery-map.js`                    | Floor plan, simulated motion sensors and route optimizer                                  |
+| `pantry.js`                        | Inventory, order completion and spending trends                                           |
+| `parfait.js`                       | Fill the cup from savings and gifts                                                       |
+| `events.js`                        | Events & deals: promos, sign-ups, forecast and prep list                                  |
+| `ledger.js`                        | Savings ledger, receipt and order wins                                                    |
+| `vote.js`                          | Regulars' vote on the new Fall Parfait                                                    |
+| `testimonials.js`                  | Testimonials, ratings comparison and kind-word form                                       |
+| `cafe-scene.js`                    | Illustrated café scene above the footer                                                   |
+| `grandma-v2.png`                   | AI-generated Grandma character                                                            |
+| `bakery-reference.jpeg`            | User-supplied storefront reference illustration                                           |
 
 ## A quick demo
 
