@@ -3,1035 +3,377 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Dough-Re-Mi — Grandma's little helper</title>
+    <title>Countertop · Grandma’s Bakeria</title>
     <meta
       name="description"
-      content="Find wasted movement and the hidden costs of custom bakery orders."
+      content="Grandma's countertop: a recipe card that plans the day, a shop bell that tells students everywhere, and a cookie jar that fills as they claim."
     />
     <link
       rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🧁%3C/text%3E%3C/svg%3E"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🔔%3C/text%3E%3C/svg%3E"
     />
-    <link rel="stylesheet" href="style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=DM+Sans:wght@400;500;700&display=swap"
+    />
+    <link rel="stylesheet" href="countertop.css" />
+    <link rel="stylesheet" href="cafe-scene.css" />
   </head>
   <body>
-    <div class="desktop">
-      <header>
-        <a class="brand" href="#"
-          >♪
-          <span
-            >dough <i>·</i> re <i>·</i> mi<small
-              >GRANDMA’S LITTLE HELPER</small
-            ></span
-          ></a
-        >
-        <div class="header-right">
-          <span class="pill">✧ prototype playground</span
-          ><span class="date"
-            >Grandma’s Bakeria<br />Thursday, a little less busy.</span
-          >
+    <div class="shop">
+      <header class="top">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">♪</span>
+          <div>
+            <strong>Countertop</strong>
+            <small>Grandma’s Bakeria</small>
+          </div>
+        </div>
+        <div class="today">
+          <span id="todayDate"></span>
+          <span class="chip">📚 Midterms week</span>
         </div>
       </header>
+
       <main>
-        <div class="intro">
-          <div>
-            <div class="eyebrow">LESS HUSTLE. MORE SPRINKLES.</div>
-            <h1>A sweeter way<br />to run your day.<span>✧</span></h1>
-            <p>Find the extra steps. See what an order really costs.</p>
+        <p class="hello" id="hello">Good morning, Grandma.</p>
+        <ol class="steps" aria-label="Plan, ring, earn">
+          <li>Plan</li>
+          <li>Ring</li>
+          <li>Earn</li>
+        </ol>
+
+        <section class="board" aria-label="Grandma's three cards">
+          <svg
+            class="twine"
+            viewBox="0 0 1000 80"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <path d="M0 18 Q250 70 500 40 Q750 10 1000 52" />
+          </svg>
+
+          <!-- 1 · Recipe card -->
+          <div class="hang" style="--tilt: -2.5deg; --delay: 0s">
+            <span class="peg" aria-hidden="true"></span>
+            <div class="recipe" id="recipe">
+              <div class="recipe-inner">
+                <button
+                  class="face front recipe-front"
+                  id="recipeFront"
+                  aria-label="Recipe card: tap to see today's plan"
+                >
+                  <span class="card-step">1 · PLAN</span>
+                  <span class="emoji" aria-hidden="true">📜</span>
+                  <span class="hand big-hand">Today’s bake</span>
+                  <span class="front-note" id="recipeNote"
+                    >Tap to see what to make</span
+                  >
+                  <span class="stamp" id="planStamp" hidden>✓ Planned</span>
+                </button>
+                <div
+                  class="face back recipe-back"
+                  id="recipeBack"
+                  aria-hidden="true"
+                >
+                  <span class="card-step">TODAY</span>
+                  <ul class="plan" id="planList"></ul>
+                  <p class="reason" id="planReason"></p>
+                  <button class="big-btn" id="soundsGood">
+                    Sounds good 👍
+                  </button>
+                  <button class="link-btn" id="flipBack">Flip back</button>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="shop-card">
-            <img
-              src="bakery-reference.jpeg"
-              alt="Watercolor illustration of a tiny sage-green neighborhood bakery"
-            /><span>Grandma’s Bakeria <i>♡</i></span>
-          </div>
-        </div>
-        <nav aria-label="Workspaces">
-          <button class="tab active" data-view="movement" aria-pressed="true">
-            ⌘ &nbsp; Movement studio</button
-          ><button class="tab" data-view="cost" aria-pressed="false">
-            ♡ &nbsp; The cost of yes</button
-          ><button class="tab" data-view="events" aria-pressed="false">
-            📣 &nbsp; Events &amp; deals</button
-          ><button class="tab" data-view="story" aria-pressed="false">
-            ✿ &nbsp; Save Grandma’s day</button
-          ><button class="tab" data-view="lab" aria-pressed="false">
-            🍂 &nbsp; The new Fall Parfait
-          </button>
-        </nav>
-        <section class="ledger-bar" aria-label="Savings ledger">
-          <div class="ledger-total">
-            <label class="eyebrow ledger-period"
-              >SAVED FOR GRANDMA PER<select id="ledgerPeriod">
-                <option value="day">day</option>
-                <option value="week" selected>week</option>
-                <option value="month">month</option>
-              </select></label
-            >
-            <strong id="ledgerTotal" aria-live="polite">$0.00</strong>
-            <small id="ledgerSplit"></small>
-          </div>
-          <div class="ledger-chips" id="ledgerChips"></div>
-          <div class="ledger-actions">
+
+          <!-- 2 · Shop bell -->
+          <div class="hang" style="--tilt: 1.5deg; --delay: 0.6s">
+            <span class="peg" aria-hidden="true"></span>
             <button
-              id="ledgerOpen"
-              class="secondary"
-              aria-expanded="false"
-              aria-controls="ledgerPanel"
+              class="face hang-card bell-card"
+              id="bellCard"
+              aria-haspopup="dialog"
             >
-              See the math</button
-            ><button id="ledgerSpend" class="primary">
-              Fund the new Fall Parfait →
+              <span class="card-step">2 · RING</span>
+              <svg
+                class="bell"
+                id="bellIcon"
+                viewBox="0 0 200 170"
+                aria-hidden="true"
+              >
+                <defs>
+                  <linearGradient id="brass" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#f6dc8c" />
+                    <stop offset=".45" stop-color="#d9a93f" />
+                    <stop offset="1" stop-color="#9c6f1e" />
+                  </linearGradient>
+                </defs>
+                <g class="bell-body">
+                  <rect
+                    x="92"
+                    y="20"
+                    width="16"
+                    height="16"
+                    rx="5"
+                    fill="#9c6f1e"
+                  />
+                  <rect
+                    x="80"
+                    y="12"
+                    width="40"
+                    height="12"
+                    rx="6"
+                    fill="url(#brass)"
+                    stroke="#7a5414"
+                    stroke-width="2"
+                  />
+                  <path
+                    d="M38 128 C38 70 66 40 100 40 C134 40 162 70 162 128 Z"
+                    fill="url(#brass)"
+                    stroke="#7a5414"
+                    stroke-width="3"
+                  />
+                  <path
+                    d="M60 110 C62 80 76 60 96 54"
+                    fill="none"
+                    stroke="#fff6d4"
+                    stroke-width="7"
+                    stroke-linecap="round"
+                    opacity=".7"
+                  />
+                </g>
+                <rect
+                  x="22"
+                  y="128"
+                  width="156"
+                  height="18"
+                  rx="9"
+                  fill="#6b4a3a"
+                />
+                <rect
+                  x="34"
+                  y="146"
+                  width="132"
+                  height="10"
+                  rx="5"
+                  fill="#4f3528"
+                />
+              </svg>
+              <span class="hand mid-hand">Ring the bell</span>
+              <span class="front-note">Tell students everywhere</span>
+            </button>
+          </div>
+
+          <!-- 3 · Cookie jar -->
+          <div class="hang" style="--tilt: -1deg; --delay: 1.2s">
+            <span class="peg" aria-hidden="true"></span>
+            <button
+              class="face hang-card jar-card"
+              id="jarCard"
+              aria-haspopup="dialog"
+            >
+              <span class="card-step">3 · EARN</span>
+              <svg
+                class="jar"
+                id="jarIcon"
+                viewBox="0 0 200 210"
+                aria-hidden="true"
+              >
+                <defs>
+                  <clipPath id="jarInside">
+                    <path
+                      d="M46 62 H154 Q168 62 168 80 V182 Q168 200 150 200 H50 Q32 200 32 182 V80 Q32 62 46 62 Z"
+                    />
+                  </clipPath>
+                </defs>
+                <path
+                  d="M46 62 H154 Q168 62 168 80 V182 Q168 200 150 200 H50 Q32 200 32 182 V80 Q32 62 46 62 Z"
+                  fill="#fffaf0"
+                  opacity=".9"
+                />
+                <g clip-path="url(#jarInside)" id="jarCoins"></g>
+                <path
+                  d="M46 62 H154 Q168 62 168 80 V182 Q168 200 150 200 H50 Q32 200 32 182 V80 Q32 62 46 62 Z"
+                  fill="none"
+                  stroke="#9c8a73"
+                  stroke-width="4"
+                />
+                <path
+                  d="M50 84 V170"
+                  stroke="#fff"
+                  stroke-width="7"
+                  stroke-linecap="round"
+                  opacity=".7"
+                />
+                <rect
+                  x="40"
+                  y="38"
+                  width="120"
+                  height="26"
+                  rx="8"
+                  fill="#c48a4a"
+                  stroke="#6b4a3a"
+                  stroke-width="3"
+                />
+                <rect
+                  x="58"
+                  y="28"
+                  width="84"
+                  height="14"
+                  rx="6"
+                  fill="#e9b4c7"
+                  stroke="#6b4a3a"
+                  stroke-width="3"
+                />
+                <rect
+                  x="62"
+                  y="110"
+                  width="76"
+                  height="34"
+                  rx="6"
+                  fill="#fff8e8"
+                  stroke="#c9b28e"
+                  stroke-width="2"
+                />
+                <text x="100" y="133" text-anchor="middle" class="jar-label">
+                  TREATS
+                </text>
+              </svg>
+              <span class="hand mid-hand" id="jarTonight">$0 tonight</span>
+              <span class="front-note" id="jarNote"
+                >Fills up as students claim</span
+              >
             </button>
           </div>
         </section>
-        <article id="ledgerPanel" class="window ledger-panel" hidden>
-          <div class="titlebar">
-            <span>♡ &nbsp; savings_receipt.exe</span><span>✧</span>
+
+        <section class="counter" aria-hidden="true">
+          <img class="counter-grandma" src="grandma-v2.png" alt="" />
+          <div class="counter-top"></div>
+          <div class="counter-front">
+            <span class="cake-stand"><i></i></span>
+            <span class="counter-plant"></span>
           </div>
-          <div class="window-body">
-            <div class="row">
-              <div>
-                <div class="eyebrow">EVERY DOLLAR, WITH THE MATH ATTACHED</div>
-                <h2 id="ledgerHeading">What our systems save Grandma</h2>
-              </div>
-              <span class="badge" id="ledgerBadge">PER WEEK</span>
-            </div>
-            <div class="ledger-table" id="ledgerRows"></div>
-            <div class="ledger-totals" id="ledgerTotals"></div>
-            <div class="controls">
-              <button id="ledgerPrint" class="primary">Print the receipt</button
-              ><button id="ledgerReset" class="secondary">
-                Clear order wins</button
-              ><span
-                >Recurring savings scale with the period; one-off order wins
-                don’t.</span
-              >
-            </div>
-            <p class="footnote">
-              Time is valued at the hourly rate in Movement studio and is listed
-              separately from cash: freed time only becomes cash if paid hours
-              fall. Each saving is counted once. Route savings use the
-              floor-plan estimate until a sensor day measures them. A week is 6
-              working days and a month is 26.
-            </p>
+        </section>
+
+        <div class="toasts" id="toasts" aria-live="polite"></div>
+      </main>
+
+      <figure class="cafe-scene">
+        <svg
+          id="cafeScene"
+          viewBox="0 0 1400 400"
+          role="img"
+          aria-label="Illustration of an evening outside Grandma’s Bakeria: a student studies with tea, a couple shares one Fall Parfait with two spoons, three friends raise their mugs at a reunion, Grandma waves from the door and a cat naps on the step."
+        ></svg>
+        <figcaption>
+          Thursday evening at Grandma’s: finals, first dates and old friends.
+        </figcaption>
+      </figure>
+      <footer class="foot">
+        <span>✿ made for small kitchens &amp; big hearts</span>
+        <a href="studio.html">Behind the counter: the full back office →</a>
+      </footer>
+    </div>
+
+    <!-- The shop bell -->
+    <dialog class="sheet" id="bellDialog" aria-labelledby="bellTitle">
+      <form method="dialog" class="sheet-close">
+        <button aria-label="Close">×</button>
+      </form>
+      <h2 id="bellTitle">🔔 What are you ringing about?</h2>
+      <div
+        class="kinds"
+        id="kinds"
+        role="radiogroup"
+        aria-label="Kind of message"
+      ></div>
+      <label class="say" for="saySentence">
+        <span>Say it in one sentence</span>
+        <span class="say-row">
+          <input
+            id="saySentence"
+            type="text"
+            maxlength="140"
+            autocomplete="off"
+          />
+          <button
+            type="button"
+            class="mic"
+            id="micBtn"
+            hidden
+            aria-label="Say it out loud"
+          >
+            🎙️
+          </button>
+        </span>
+      </label>
+      <div class="previews">
+        <article class="preview insta">
+          <header>
+            <span class="avatar">🧁</span><b>grandmasbakeria</b
+            ><small>Instagram</small>
+          </header>
+          <div class="insta-tile">
+            <span class="insta-emoji" id="instaEmoji"></span
+            ><strong id="instaHead"></strong>
+          </div>
+          <p id="instaText"></p>
+        </article>
+        <article class="preview discord">
+          <header>
+            <span class="avatar disc">🧁</span><b>Grandma’s Bakeria</b
+            ><span class="bot">BOT</span><small>#campus-eats</small>
+          </header>
+          <div class="embed">
+            <strong id="discordHead"></strong>
+            <p id="discordText"></p>
+            <div class="disc-actions" id="discordActions"></div>
           </div>
         </article>
-        <section id="movement" class="view">
-          <article class="window kitchen floor">
-            <div class="titlebar">
-              <span>✿ &nbsp; bakery_floor.exe</span><span>✧</span>
-            </div>
-            <div class="window-body">
-              <div class="row">
-                <div>
-                  <div class="eyebrow">THE WHOLE BAKERY, FROM ABOVE</div>
-                  <h2 id="workflowTitle">The parfait shuffle</h2>
-                </div>
-                <label class="workflow-pick"
-                  >Workflow to study<select id="workflow"></select
-                ></label>
-              </div>
-              <div class="map">
-                <div class="map-caption">
-                  GRANDMA’S BAKERIA · FLOOR PLAN
-                  <span>TOP VIEW · ONE SQUARE ≈ 60 CM · ◉ = MOTION SENSOR</span>
-                </div>
-                <svg
-                  id="floor"
-                  viewBox="0 0 900 540"
-                  role="img"
-                  aria-label="Top-down floor plan of the bakery with kitchen stations, shop floor, motion sensors and Grandma's walking route"
-                >
-                  <defs>
-                    <pattern
-                      id="grid"
-                      width="30"
-                      height="30"
-                      patternUnits="userSpaceOnUse"
-                    >
-                      <path
-                        d="M30 0H0V30"
-                        fill="none"
-                        stroke="#e2d6bd"
-                        stroke-width="1"
-                      />
-                    </pattern>
-                    <radialGradient id="heatGlow">
-                      <stop
-                        offset="0"
-                        stop-color="#d4567d"
-                        stop-opacity=".55"
-                      />
-                      <stop
-                        offset=".6"
-                        stop-color="#e98aa6"
-                        stop-opacity=".25"
-                      />
-                      <stop offset="1" stop-color="#f3c5d4" stop-opacity="0" />
-                    </radialGradient>
-                  </defs>
-                  <rect width="900" height="540" fill="url(#grid)" />
-                  <g id="floorBase"></g>
-                  <g id="heat"></g>
-                  <path
-                    id="route"
-                    d=""
-                    fill="none"
-                    stroke="#d77a97"
-                    stroke-width="4"
-                    stroke-linejoin="round"
-                    stroke-dasharray="8 7"
-                  />
-                  <g id="sensors"></g>
-                  <g id="walker" transform="translate(400 148)">
-                    <ellipse cx="0" cy="4" rx="19" ry="6" fill="#526e5533" />
-                    <image
-                      id="grandmaSprite"
-                      href="grandma-v2.png"
-                      x="-35"
-                      y="-59"
-                      width="70"
-                      height="70"
-                      aria-label="Grandma the little baker"
-                    />
-                    <text
-                      x="0"
-                      y="-62"
-                      text-anchor="middle"
-                      class="grandma-label"
-                    >
-                      GRANDMA
-                    </text>
-                  </g>
-                </svg>
-                <div class="map-key">
-                  <span
-                    ><i id="routeSwatch"></i>
-                    <span id="routeLabel">Observed route</span></span
-                  ><span id="routeDistance">✧ every step adds up</span>
-                </div>
-              </div>
-              <div class="controls">
-                <button class="primary" id="play">▶ Play workflow</button
-                ><button class="secondary" id="optimize">
-                  ✧ Show the efficient route</button
-                ><button class="secondary" id="sensorDay">
-                  ◉ Run a sensor day</button
-                ><label class="heat-toggle"
-                  ><input id="heatToggle" type="checkbox" checked />
-                  Heatmap</label
-                ><span id="playStatus" aria-live="polite"
-                  >Grandma is ready when you are.</span
-                >
-              </div>
-            </div>
-          </article>
-          <div class="workspace">
-            <article class="window sensors-window">
-              <div class="titlebar">
-                <span>◉ &nbsp; motion_sensors.exe</span><span>✧</span>
-              </div>
-              <div class="window-body">
-                <div class="eyebrow">WHAT THE SENSORS NOTICED</div>
-                <h2 id="sensorHeadline">Switch the sensors on for a day.</h2>
-                <div class="sensor-grid">
-                  <div class="sensor-panel">
-                    <div class="mini-head">LIVE SENSOR LOG</div>
-                    <ol id="sensorLog" class="sensor-log" aria-live="polite">
-                      <li class="muted">Waiting for the first footstep…</li>
-                    </ol>
-                  </div>
-                  <div class="sensor-panel">
-                    <div class="mini-head">BUSIEST PATHS</div>
-                    <div id="hotLegs">
-                      <p class="muted">No trips recorded yet.</p>
-                    </div>
-                  </div>
-                </div>
-                <div class="route-compare">
-                  <div>
-                    <span>OBSERVED</span><b id="obsRoute">—</b
-                    ><small id="obsRouteSub">per cycle</small>
-                  </div>
-                  <div class="good">
-                    <span>EFFICIENT ROUTE</span><b id="effRoute">—</b
-                    ><small id="effRouteSub">same tasks, better order</small>
-                  </div>
-                  <div class="best">
-                    <span>+ LAYOUT IDEA</span><b id="layRoute">—</b
-                    ><small id="layRouteSub">one station staged closer</small>
-                  </div>
-                </div>
-                <div class="money-strip">
-                  <div><span>SAVED / DAY</span><b id="saveDay">—</b></div>
-                  <div><span>SAVED / MONTH</span><b id="saveMonth">—</b></div>
-                  <div><span>SAVED / YEAR</span><b id="saveYear">—</b></div>
-                </div>
-                <div id="layoutIdea" class="verdict">
-                  Run a sensor day to find the stations Grandma walks to most.
-                </div>
-                <button id="applySensors" class="secondary" disabled>
-                  ↓ Use the measured walking times below
-                </button>
-                <div class="eyebrow settings-head">YOUR BAKERY’S NUMBERS</div>
-                <div class="settings">
-                  <label
-                    >Items / day<input
-                      id="daily"
-                      type="number"
-                      min="1"
-                      max="1000"
-                      value="40" /></label
-                  ><label
-                    >Labor / hour ($)<input
-                      id="wage"
-                      type="number"
-                      min="0"
-                      max="200"
-                      value="20" /></label
-                  ><label
-                    >Walking (sec / item)<input
-                      id="walking"
-                      type="number"
-                      min="0"
-                      max="600"
-                      value="71" /></label
-                  ><label
-                    >Reaching (sec / item)<input
-                      id="reaching"
-                      type="number"
-                      min="0"
-                      max="600"
-                      value="24"
-                  /></label>
-                </div>
-                <p class="footnote" id="movementFootnote">
-                  Simulated motion sensors, not live hardware. Assembly takes 68
-                  sec; the improved layout assumes 24 sec walking + 7 sec
-                  reaching. Distances use the floor plan at 2 cm per pixel and a
-                  tray-carrying pace of 0.65 m/s.
-                </p>
-              </div>
-            </article>
-            <aside>
-              <article class="window savings">
-                <div class="titlebar">
-                  <span>♡ &nbsp; a little time back</span><span>✧</span>
-                </div>
-                <div class="window-body">
-                  <div class="eyebrow">POTENTIAL DAILY SAVINGS</div>
-                  <div class="big" id="minutes">42.7<span>minutes</span></div>
-                  <div class="metric-line">
-                    <span>Labor capacity freed</span
-                    ><b id="labor">$14.22 / day</b>
-                  </div>
-                  <div class="comparison">
-                    <div><span>BEFORE</span><b id="before">2m 43s</b></div>
-                    <span>✧</span>
-                    <div><span>AFTER</span><b id="after">1m 39s</b></div>
-                  </div>
-                  <p class="footnote">
-                    Time value at your hourly rate; cash savings only if paid
-                    hours actually fall.
-                  </p>
-                </div>
-              </article>
-              <article class="tip">
-                <span class="eyebrow">3 TINY CHANGES</span>
-                <h3 id="tipTitle">Everything within reach.</h3>
-                <ol id="tipList"></ol>
-                <span class="tip-bottom"
-                  >♡ Keep chilled ingredients food-safe.</span
-                >
-              </article>
-            </aside>
-          </div>
+        <article class="preview sms">
+          <header><b>Text message</b><small id="smsCount"></small></header>
+          <p class="bubble" id="smsText"></p>
+        </article>
+      </div>
+      <div class="ring-row">
+        <button class="ring-btn" id="ringBtn">🔔 Ring the bell</button>
+        <p id="ringStatus" aria-live="polite"></p>
+      </div>
+    </dialog>
+
+    <!-- The cookie jar -->
+    <dialog class="sheet" id="jarDialog" aria-labelledby="jarTitle">
+      <form method="dialog" class="sheet-close">
+        <button aria-label="Close">×</button>
+      </form>
+      <h2 id="jarTitle">🍪 The cookie jar</h2>
+      <div class="totals" id="totals"></div>
+      <div class="jar-grid">
+        <section>
+          <h3>Where the claims came from</h3>
+          <div id="channelBars"></div>
         </section>
-        <section id="cost" class="view" hidden>
-          <div class="workspace">
-            <article class="window">
-              <div class="titlebar">
-                <span>♡ &nbsp; custom_order.exe</span><span>✧</span>
-              </div>
-              <div class="window-body">
-                <div class="order-counter">
-                  <div class="counter-top">
-                    <span>✿ GRANDMA’S ORDER COUNTER</span
-                    ><button id="nextCustomer" class="secondary">
-                      ♧ Next customer
-                    </button>
-                  </div>
-                  <div class="customer-scene">
-                    <div class="customer-portrait">
-                      <img
-                        src="grandma-v2.png"
-                        alt="Grandma at the bakery counter"
-                      /><span>Grandma’s taking orders!</span>
-                    </div>
-                    <div class="speech" aria-live="polite">
-                      <span id="customerName">Poppy · a birthday surprise</span>
-                      <p id="customerSpeech">
-                        “24 strawberry cupcakes, please! Tomorrow at 11. My
-                        budget is $120.”
-                      </p>
-                    </div>
-                  </div>
-                  <div class="ticket">
-                    <div>
-                      <span class="eyebrow">ORDER TICKET</span
-                      ><b id="ticketNumber">#001</b>
-                    </div>
-                    <div class="ticket-tags">
-                      <span id="ticketProduct">🍓 Strawberry cupcakes</span
-                      ><span id="ticketDeadline">Tomorrow · 11:00 AM</span>
-                    </div>
-                    <div class="ticket-bottom">
-                      <span id="ticketSummary"
-                        >24 cupcakes · offered $120.00</span
-                      ><span id="ticketStatus">NEW REQUEST</span>
-                    </div>
-                  </div>
-                  <div class="ticket-actions">
-                    <button id="acceptOrder" class="primary">
-                      ♡ Accept at current quote</button
-                    ><button id="declineOrder" class="secondary">
-                      Pass on this order</button
-                    ><button id="completeOrder" class="primary" hidden>
-                      ✓ Mark baked &amp; picked up
-                    </button>
-                  </div>
-                  <p
-                    id="orderResponse"
-                    class="order-response"
-                    aria-live="polite"
-                  >
-                    Check the true cost before you say yes.
-                  </p>
-                </div>
-                <div class="eyebrow">BEFORE YOU SAY “OF COURSE!”</div>
-                <h2>A sweet order. A real price.</h2>
-                <div class="form-grid">
-                  <label
-                    >Cupcakes<input
-                      id="qty"
-                      type="number"
-                      min="1"
-                      max="1000"
-                      value="24" /></label
-                  ><label
-                    >Order quote ($)<input
-                      id="quote"
-                      type="number"
-                      min="0"
-                      max="100000"
-                      value="120" /></label
-                  ><label
-                    >Ingredients / cupcake ($)<input
-                      id="ingredient"
-                      type="number"
-                      min="0"
-                      max="1000"
-                      step=".1"
-                      value="1.3" /></label
-                  ><label
-                    >Packaging / cupcake ($)<input
-                      id="packaging"
-                      type="number"
-                      min="0"
-                      max="100"
-                      step=".1"
-                      value=".4" /></label
-                  ><label
-                    >Hands-on making (minutes)<input
-                      id="prep"
-                      type="number"
-                      min="0"
-                      max="10000"
-                      value="42" /></label
-                  ><label
-                    >Labor / hour ($)<input
-                      id="orderWage"
-                      type="number"
-                      min="0"
-                      max="200"
-                      value="20" /></label
-                  ><label
-                    >Cleanup + setup (minutes)<input
-                      id="cleanup"
-                      type="number"
-                      min="0"
-                      max="1000"
-                      value="15" /></label
-                  ><label
-                    >Rush delivery ($)<input
-                      id="rush"
-                      type="number"
-                      min="0"
-                      max="10000"
-                      value="18" /></label
-                  ><label
-                    >Displaced regular items<input
-                      id="displaced"
-                      type="number"
-                      min="0"
-                      max="1000"
-                      value="8" /></label
-                  ><label
-                    >Profit lost / item ($)<input
-                      id="lost"
-                      type="number"
-                      min="0"
-                      max="1000"
-                      step=".1"
-                      value="2.5"
-                  /></label>
-                </div>
-                <label class="workflow-link"
-                  ><input id="linkWorkflow" type="checkbox" /> Include movement
-                  from the kitchen workflow</label
-                >
-                <p class="footnote">
-                  When linked, walking + reaching time per cupcake comes from
-                  Movement studio. Hands-on making excludes those steps.
-                </p>
-                <label class="range-label"
-                  >Desired profit margin <b id="marginLabel">25%</b
-                  ><input id="margin" type="range" min="0" max="70" value="25"
-                /></label>
-                <p class="footnote">
-                  Displaced sales use lost contribution profit, not revenue.
-                  Estimates exclude taxes and fixed overhead.
-                </p>
-              </div>
-            </article>
-            <aside>
-              <article class="window savings">
-                <div class="titlebar">
-                  <span>✧ &nbsp; the honest answer</span><span>♡</span>
-                </div>
-                <div class="window-body">
-                  <div class="eyebrow">TRUE INCREMENTAL PROFIT</div>
-                  <div class="big" id="profit">$22.20</div>
-                  <div id="verdict" class="verdict"></div>
-                  <div id="breakdown"></div>
-                  <div class="quote-card">
-                    <span>QUOTE FOR YOUR TARGET MARGIN</span
-                    ><strong id="suggested">$130.40</strong
-                    ><button class="primary" id="useQuote">
-                      Send a better quote
-                    </button>
-                  </div>
-                  <p class="footnote">
-                    Suggested quote = total incremental cost ÷ (1 − target
-                    margin).
-                  </p>
-                </div>
-              </article>
-              <article class="tip pink">
-                <div class="eyebrow">THE HIDDEN PART</div>
-                <h3>A “yes” takes more than flour.</h3>
-                <p>
-                  Cleanup, rush delivery and the regular orders you can’t make
-                  all count. Give your time a place in the price.
-                </p>
-              </article>
-            </aside>
-          </div>
-          <div class="duo">
-            <article class="window">
-              <div class="titlebar">
-                <span>✿ &nbsp; pantry_shelves.exe</span><span>✧</span>
-              </div>
-              <div class="window-body">
-                <div class="row">
-                  <div>
-                    <div class="eyebrow">
-                      LIVE STOCK · UPDATES WHEN ORDERS ARE DONE
-                    </div>
-                    <h2>What’s on the shelves</h2>
-                  </div>
-                  <span class="badge" id="stockBadge">ALL STOCKED</span>
-                </div>
-                <div id="stockSummary" class="verdict"></div>
-                <div id="stockList" class="stock-list"></div>
-                <div class="controls">
-                  <button id="restock" class="primary">
-                    ↻ Restock low items</button
-                  ><button id="resetPantry" class="secondary">
-                    Reset demo data</button
-                  ><span id="pantryStatus" aria-live="polite"></span>
-                </div>
-                <p class="footnote">
-                  Stock falls only when an accepted order is marked baked and
-                  picked up. Recipes are per cupcake; one box holds 12. Saved in
-                  this browser only.
-                </p>
-              </div>
-            </article>
-            <article class="window trends">
-              <div class="titlebar">
-                <span>♡ &nbsp; trends_and_savings.exe</span><span>✧</span>
-              </div>
-              <div class="window-body">
-                <div class="eyebrow">THE LAST NINE WEEKS</div>
-                <h2>Where the ingredient money goes</h2>
-                <div id="spendChart" class="spend-chart" role="img"></div>
-                <div class="trend-stats" id="trendStats"></div>
-                <div class="mini-head">MONEY-SAVING IDEAS FROM YOUR ORDERS</div>
-                <ol id="insights" class="insights"></ol>
-                <div class="quote-card">
-                  <span>ESTIMATED SAVINGS IF YOU ACT ON THESE</span
-                  ><strong id="insightTotal">$0.00 / month</strong>
-                </div>
-                <p class="footnote">
-                  Earlier weeks are seeded demo history; your completed orders
-                  are added on top. Bulk prices and shelf life are editable
-                  assumptions in <code>pantry.js</code>.
-                </p>
-              </div>
-            </article>
-          </div>
+        <section>
+          <h3>What sold tonight</h3>
+          <ul class="sold" id="soldList"></ul>
         </section>
-        <section id="events" class="view" hidden>
-          <article class="window promo-board">
-            <div class="titlebar">
-              <span>📣 &nbsp; this_week_at_grandmas.exe</span
-              ><span class="side-tag">FOR CUSTOMERS</span>
-            </div>
-            <div class="window-body">
-              <div class="eyebrow">DEALS THAT BRING THE NEIGHBOURS IN</div>
-              <h2>This week at Grandma’s</h2>
-              <div class="event-cards" id="eventCards"></div>
-              <div class="promo-post">
-                <label for="promoText" class="mini-head"
-                  >PROMO POST FOR INSTAGRAM, THE WINDOW OR THE CAMPUS
-                  BOARD</label
-                >
-                <textarea id="promoText" rows="3" readonly></textarea>
-                <div class="controls">
-                  <button id="copyPromo" class="secondary">Copy the post</button
-                  ><span id="promoStatus" aria-live="polite"></span>
-                </div>
-              </div>
-            </div>
-          </article>
-          <div class="workspace">
-            <article class="window">
-              <div class="titlebar">
-                <span>♡ &nbsp; save_me_a_seat.exe</span
-                ><span class="side-tag">FOR CUSTOMERS</span>
-              </div>
-              <div class="window-body">
-                <div class="eyebrow" id="signupEyebrow">SIGN UP</div>
-                <h2 id="signupTitle">Save me a seat</h2>
-                <p class="signup-lede" id="signupLede"></p>
-                <form id="signupForm" class="signup-form">
-                  <label
-                    >Your first name<input
-                      id="signupName"
-                      type="text"
-                      maxlength="30"
-                      autocomplete="given-name"
-                      required
-                  /></label>
-                  <label
-                    >How many of you?<select id="signupSize">
-                      <option>1</option>
-                      <option>2</option>
-                      <option>3</option>
-                      <option>4</option>
-                      <option>5</option>
-                      <option>6</option>
-                    </select></label
-                  >
-                  <button class="primary" type="submit">♡ Count me in</button>
-                </form>
-                <p
-                  id="signupStatus"
-                  class="order-response"
-                  aria-live="polite"
-                ></p>
-                <div class="mini-head" id="comingHead">WHO’S COMING</div>
-                <ul id="comingList" class="coming-list"></ul>
-                <p class="footnote">
-                  Only a first name and party size are kept, in this browser.
-                  Names you add can be removed with ×.
-                </p>
-              </div>
-            </article>
-            <aside>
-              <article class="window savings prep-sheet">
-                <div class="titlebar">
-                  <span>✿ &nbsp; grandmas_prep_sheet</span
-                  ><span class="side-tag">FOR GRANDMA</span>
-                </div>
-                <div class="window-body">
-                  <div class="eyebrow" id="prepEyebrow">EXPECT ABOUT</div>
-                  <div class="big" id="expectedPeople">
-                    0<span>people</span>
-                  </div>
-                  <div class="metric-line">
-                    <span id="expectedMath"></span>
-                  </div>
-                  <div class="mini-head prep-head">MAKE AHEAD</div>
-                  <div id="prepList"></div>
-                  <div id="prepCheck" class="verdict"></div>
-                  <div class="quote-card">
-                    <span>DOES THE DEAL PAY?</span
-                    ><strong id="dealProfit">$0.00</strong>
-                    <small id="dealMath"></small>
-                  </div>
-                </div>
-              </article>
-            </aside>
-          </div>
-          <article class="window event-history">
-            <div class="titlebar">
-              <span>♡ &nbsp; past_events.csv</span
-              ><span class="side-tag">FOR GRANDMA</span>
-            </div>
-            <div class="window-body">
-              <div class="eyebrow">WHAT HAPPENED LAST TIME</div>
-              <h2 id="historyTitle">The last eight</h2>
-              <div class="history-grid">
-                <div>
-                  <div class="mini-head">PEOPLE WHO CAME, BY WEEK</div>
-                  <div id="turnoutChart" class="mini-chart" role="img"></div>
-                </div>
-                <div>
-                  <div class="mini-head">WHAT SELLS, PER EVENT</div>
-                  <div id="sellersChart" class="mini-chart" role="img"></div>
-                </div>
-              </div>
-              <div class="trend-stats" id="eventStats"></div>
-              <p id="eventInsight" class="verdict"></p>
-              <p class="footnote">
-                Past events are seeded demo history. Forecast = people signed up
-                × (past share who showed up + past walk-ins per sign-up).
-                Make-ahead amounts add a 10% cushion. “Old way” is preparing for
-                the busiest night so far; the difference is food that would
-                likely go unsold.
-              </p>
-            </div>
-          </article>
-        </section>
-        <section id="story" class="view" hidden>
-          <div class="story-banner">
-            <img src="grandma-v2.png" alt="Grandma in her mint apron" />
-            <div>
-              <span class="eyebrow">A LITTLE BAKERY. A BIG REASON.</span>
-              <h2>Help her keep the keys.</h2>
-              <p>
-                Last year <b>The Bakery</b>, a nationwide chain, opened right
-                next door, and its “Autumn Parfait” tastes suspiciously like
-                Grandma’s famous Fall Parfait. They have a whole operations
-                team. Grandma has her recipe book, her regulars, and one pair of
-                hands.
-              </p>
-              <p class="story-quote">
-                “I don’t need to be the biggest bakery.<br />I just want to
-                still be here next spring.”
-              </p>
-              <span class="footnote"
-                >Fictional demo story · savings are modeled, not evidence of
-                business survival.</span
-              >
-            </div>
-          </div>
-          <div class="workspace">
-            <article class="window">
-              <div class="titlebar">
-                <span>✿ &nbsp; one_order_one_better_day.exe</span><span>♡</span>
-              </div>
-              <div class="window-body">
-                <div class="eyebrow">THE DEMO CHALLENGE</div>
-                <h2>A $180 order lands. Is it a lifeline?</h2>
-                <p>
-                  48 cupcakes. A rushed pickup. The usual morning orders still
-                  need to get made.
-                </p>
-                <button id="startChallenge" class="primary">
-                  ① Bring in the rush order
-                </button>
-                <div id="challengeArea" hidden>
-                  <div class="impact-toggles">
-                    <label
-                      ><input type="checkbox" id="smartLayout" /> ② Stage
-                      ingredients & shorten Grandma’s route</label
-                    ><label
-                      ><input type="checkbox" id="laterPickup" /> ③ Offer pickup
-                      one hour later</label
-                    >
-                  </div>
-                  <div class="schedule">
-                    <div class="schedule-heading">
-                      <b>Grandma’s available time</b
-                      ><span id="capacityText">100 minutes</span>
-                    </div>
-                    <div class="time-track"><div id="timeFill"></div></div>
-                    <p id="scheduleStatus" aria-live="polite"></p>
-                  </div>
-                  <div class="impact-grid">
-                    <div>
-                      <span>AS REQUESTED</span
-                      ><strong id="baselineProfit"></strong
-                      ><small>incremental profit</small>
-                    </div>
-                    <div>
-                      <span>WITH YOUR CHANGES</span
-                      ><strong id="scenarioProfit"></strong
-                      ><small>incremental profit</small>
-                    </div>
-                  </div>
-                  <div class="controls">
-                    <button id="replayImpact" class="secondary">
-                      ▶ Watch Grandma’s route</button
-                    ><button id="reviewImpact" class="secondary">
-                      Review the order costs
-                    </button>
-                  </div>
-                  <p class="footnote">
-                    Demo assumptions: 100 free minutes before pickup; the later
-                    pickup adds 60 minutes and removes the $25 rush delivery. If
-                    the order overruns its slot, 20 regular items lose $2.50
-                    contribution each. Baking and cooling fit existing oven
-                    capacity. Movement settings and hourly rate come from your
-                    workspace.
-                  </p>
-                </div>
-              </div>
-            </article>
-            <aside>
-              <article class="window">
-                <div class="titlebar">
-                  <span>♡ &nbsp; Grandma’s savings receipt</span><span>✧</span>
-                </div>
-                <div class="window-body">
-                  <div id="receiptEmpty">
-                    <h3>Every minute has a person behind it.</h3>
-                    <p>
-                      Bring in the order to see where the time and money go.
-                    </p>
-                  </div>
-                  <div id="receipt" hidden>
-                    <div class="eyebrow">ONE ORDER · BEFORE / AFTER</div>
-                    <div id="receiptRows"></div>
-                    <div class="receipt-message" id="humanResult"></div>
-                    <button id="printReceipt" class="primary">
-                      Print savings receipt
-                    </button>
-                    <p class="footnote">
-                      Time value is already included in profit improvement.
-                      Don’t add it again. Extra pickup time is scheduling
-                      flexibility, not time saved.
-                    </p>
-                  </div>
-                </div>
-              </article>
-              <article class="tip">
-                <span class="eyebrow">THE BIGGER IDEA</span>
-                <h3>Keep the recipes.<br />Lose the extra steps.</h3>
-                <p>
-                  Give independent shops the operations support that big chains
-                  can afford—so Grandma can stay Grandma.
-                </p>
-              </article>
-            </aside>
-          </div>
-        </section>
-        <section id="lab" class="view" hidden>
-          <article class="window vote-window">
-            <div class="titlebar">
-              <span>♡ &nbsp; regulars_vote.exe</span><span>✧</span>
-            </div>
-            <div class="window-body">
-              <div class="eyebrow">
-                THE BAKERY CAN COPY A RECIPE. IT CAN’T COPY HER REGULARS.
-              </div>
-              <h2>Let the neighbours pick the new Fall Parfait</h2>
-              <div class="vote-grid" id="voteGrid"></div>
-              <p class="footnote">
-                Starting votes are demo numbers; one vote per browser, and you
-                can change it.
-              </p>
-            </div>
-          </article>
-          <article class="window parfait-fund">
-            <div class="titlebar">
-              <span>✿ &nbsp; fall_parfait_fund.exe</span><span>🍂</span>
-            </div>
-            <div class="window-body">
-              <div class="fund-grid">
-                <div class="cup-side">
-                  <div class="eyebrow">FILL THE CUP · THE NEW FALL PARFAIT</div>
-                  <h2>Savings become layers</h2>
-                  <p class="fund-lede">
-                    Every system adds a layer: steps saved become granola,
-                    smarter quotes become spiced apples, pantry savings become
-                    pumpkin cream. Neighbours’ gifts add the candied pecans on
-                    top.
-                  </p>
-                  <div class="cup-wrap">
-                    <svg
-                      id="cup"
-                      viewBox="0 0 260 340"
-                      role="img"
-                      aria-label="Parfait cup filling with layers from savings and donations"
-                    ></svg>
-                    <div class="cup-progress">
-                      <strong id="fundRaised">$0</strong>
-                      <span id="fundGoal">of $300 to launch</span>
-                      <div class="time-track"><div id="fundFill"></div></div>
-                    </div>
-                  </div>
-                  <ul id="cupLegend" class="cup-legend"></ul>
-                  <ol id="milestones" class="milestones"></ol>
-                </div>
-                <div class="give-side">
-                  <form id="donateForm" class="donate-form">
-                    <fieldset>
-                      <legend>Add the pecans: give a little</legend>
-                      <div class="amount-picks" id="amountPicks">
-                        <button type="button" data-amount="3">$3</button
-                        ><button type="button" data-amount="5" class="on">
-                          $5</button
-                        ><button type="button" data-amount="10">$10</button
-                        ><button type="button" data-amount="25">$25</button>
-                        <label class="custom-amount"
-                          >Other<input
-                            id="donateAmount"
-                            type="number"
-                            min="1"
-                            max="500"
-                            value="5"
-                        /></label>
-                      </div>
-                    </fieldset>
-                    <fieldset>
-                      <legend>Sign the cup (optional)</legend>
-                      <label
-                        >Name for the donor wall<input
-                          id="donorName"
-                          type="text"
-                          maxlength="30"
-                          placeholder="A friendly neighbour"
-                      /></label>
-                      <label
-                        >A note for Grandma<input
-                          id="donorNote"
-                          type="text"
-                          maxlength="80"
-                          placeholder="More cinnamon, please!"
-                      /></label>
-                    </fieldset>
-                    <button class="primary" type="submit" id="donateBtn">
-                      ♡ Add my gift to the cup
-                    </button>
-                    <p
-                      id="donateStatus"
-                      class="order-response"
-                      aria-live="polite"
-                    ></p>
-                  </form>
-                  <div class="mini-head">NEIGHBOURS WHO CHIPPED IN</div>
-                  <ul id="donorWall" class="donor-wall"></ul>
-                  <div class="controls">
-                    <button id="resetFund" class="secondary" type="button">
-                      Reset demo cup
-                    </button>
-                  </div>
-                  <p class="footnote">
-                    Demo pledges only: no payment is taken and nothing leaves
-                    this browser.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </article>
-        </section>
-        <section class="love" aria-labelledby="loveTitle">
-          <div class="love-head">
-            <div>
-              <div class="eyebrow">
-                WHY THE NEIGHBOURS WALK PAST THE BAKERY NEXT DOOR
-              </div>
-              <h2 id="loveTitle">Kind words from the regulars</h2>
-            </div>
-            <div class="scoreboard">
-              <div class="score ours">
-                <span>Grandma’s Bakeria</span><strong id="ourScore">4.9</strong
-                ><small id="ourCount">★★★★★ · 214 reviews</small>
-              </div>
-              <div class="score theirs">
-                <span>The Bakery (next door)</span><strong>3.4</strong
-                ><small>★★★☆☆ · 88 reviews</small>
-              </div>
-            </div>
-          </div>
-          <div class="love-body">
-            <figure class="feature-quote" aria-live="polite">
-              <blockquote id="featureText"></blockquote>
-              <figcaption id="featureWho"></figcaption>
-              <div class="quote-dots" id="quoteDots"></div>
-            </figure>
-            <div class="versus" id="versus"></div>
-          </div>
-          <div class="quote-wall" id="quoteWall"></div>
-          <form id="kindForm" class="kind-form">
-            <label
-              >Your name<input
-                id="kindName"
-                type="text"
-                maxlength="30"
-                required
-            /></label>
-            <label class="grow"
-              >What do you love about Grandma’s?<input
-                id="kindText"
-                type="text"
-                maxlength="160"
-                required
-            /></label>
-            <label
-              >Stars<select id="kindStars">
-                <option>5</option>
-                <option>4</option>
-                <option>3</option>
-              </select></label
-            >
-            <button class="primary" type="submit">Pin it to the wall</button>
-          </form>
-          <p class="footnote">
-            Sample testimonials written for this fictional demo story, not real
-            customer reviews. Words you add are saved in this browser only.
-          </p>
-        </section>
-        <figure class="cafe-scene">
-          <svg
-            id="cafeScene"
-            viewBox="0 0 1400 400"
-            role="img"
-            aria-label="Illustration of an evening outside Grandma’s Bakeria: a student studies with tea, a couple shares one Fall Parfait with two spoons, three friends raise their mugs at a reunion, Grandma waves from the door and a cat naps on the step."
-          ></svg>
-          <figcaption>
-            Thursday evening at Grandma’s: finals, first dates and old friends.
-          </figcaption>
-        </figure>
-        <footer>
-          <span>✿ made for small kitchens & big hearts</span
-          ><span>Dough-Re-Mi · estimates, with the math attached</span>
-        </footer>
-      </main>
-    </div>
-    <script src="app.js"></script>
-    <script src="bakery-map.js"></script>
-    <script src="pantry.js"></script>
-    <script src="events.js"></script>
-    <script src="ledger.js"></script>
-    <script src="parfait.js"></script>
-    <script src="vote.js"></script>
-    <script src="testimonials.js"></script>
+      </div>
+      <section>
+        <h3>Today’s rings</h3>
+        <ul class="rings" id="ringList"></ul>
+      </section>
+      <p class="fine">
+        Claims and sends are simulated for this demo, and everything is saved in
+        this browser only.
+        <button class="link-btn" id="newDay">Start a fresh day</button>
+      </p>
+    </dialog>
+
+    <script src="countertop.js"></script>
     <script src="cafe-scene.js"></script>
   </body>
 </html>
