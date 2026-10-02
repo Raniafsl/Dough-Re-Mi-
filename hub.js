@@ -195,11 +195,13 @@ const Hub = (() => {
         text: s,
         actions: poll
           ? read.options.map((o, i) => `${["🅰️", "🅱️", "🅲"][i]} ${o}`)
-          : kind === "event"
-            ? ["✅ I’m coming"]
-            : ["🍪 Claim one"],
+          : kind === "poll"
+            ? ["👍 Yes", "👎 No"]
+            : kind === "event"
+              ? ["✅ I’m coming"]
+              : ["🍪 Claim one"],
       },
-      sms: `Grandma’s Bakeria: ${s} ${poll ? `Reply ${read.options.map((_, i) => "ABC"[i]).join(" or ")} to vote.` : kind === "event" ? "Reply YES to save a seat." : "Reply CLAIM to save one."} Reply STOP to opt out.`,
+      sms: `Grandma’s Bakeria: ${s} ${poll ? `Reply ${read.options.map((_, i) => "ABC"[i]).join(" or ")} to vote.` : kind === "poll" ? "Reply YES or NO to vote." : kind === "event" ? "Reply YES to save a seat." : "Reply CLAIM to save one."} Reply STOP to opt out.`,
       read,
     };
   }
@@ -405,8 +407,10 @@ const Hub = (() => {
                 : 0,
           item: kind === "special" ? "Student Friday order" : m.read.item,
           options:
-            kind === "poll" && m.read.options.length > 1
-              ? m.read.options
+            kind === "poll"
+              ? m.read.options.length > 1
+                ? m.read.options
+                : ["Yes", "No"]
               : null,
           discord: m.discord,
         }),

@@ -15,17 +15,18 @@ Every part talks to the others only through the **hub** (`hub.js`). Each part ca
 
 ## The hub, in the browser (`Hub.*`)
 
-| Call                                  | Returns                                                                                 | Notes                                                             |
-| ------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| `Hub.plan()`                          | `{ items: [{ emoji, name, qty, note }], reason }`                                       | Hardcoded for the demo                                            |
-| `Hub.planned()` / `Hub.confirmPlan()` | `boolean` / –                                                                           | "Sounds good 👍"                                                  |
-| `Hub.kinds`                           | `{ treats, special, event, poll }`, each `{ emoji, label, head, example }`              | The four picture buttons                                          |
-| `Hub.rewrite(kind, sentence)`         | `{ text, insta: { emoji, head, text }, discord: { head, text, actions[] }, sms, read }` | Rule-based now; swap in the AI rewrite without changing the shape |
-| `Hub.ring({ kind, text })`            | `ring` `{ id, kind, text, time, claims: [] }`                                           | Sends to every channel                                            |
-| `Hub.onClaim(fn)`                     | –                                                                                       | `fn(claim, ring)` for every claim from any channel                |
-| `Hub.onRingDone(fn)`                  | –                                                                                       | `fn(ring)` when replies settle (stub only; live mode can skip it) |
-| `Hub.summary()`                       | `{ goal, tonight, week, claims, rescued, seats, votes, byChannel, sold, rings }`        | Feeds the parfait                                                 |
-| `Hub.newDay()`                        | –                                                                                       | Demo reset                                                        |
+| Call                                          | Returns                                                                                 | Notes                                                             |
+| --------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `Hub.plan()`                                  | `{ reason, items: [{ id, emoji, icon, name, qty, step, when, why }], agenda }`          | Today's suggestions, hardcoded for the demo                       |
+| `Hub.finalPlan()` / `Hub.finalisePlan(items)` | `null` or `{ at, items }` / –                                                           | Grandma's accepted plan, saved for the day                        |
+| `Hub.mode()` / `Hub.onMode(fn)`               | `{ live, discord, channel }`                                                            | Drives the header chip and the bell's "sent" message              |
+| `Hub.kinds`                                   | `{ treats, special, event, poll }`, each `{ emoji, label, head, example }`              | The four picture buttons                                          |
+| `Hub.rewrite(kind, sentence)`                 | `{ text, insta: { emoji, head, text }, discord: { head, text, actions[] }, sms, read }` | Rule-based now; swap in the AI rewrite without changing the shape |
+| `Hub.ring({ kind, text })`                    | `ring` `{ id, kind, text, time, claims: [] }`                                           | Sends to every channel                                            |
+| `Hub.onClaim(fn)`                             | –                                                                                       | `fn(claim, ring)` for every claim from any channel                |
+| `Hub.onRingDone(fn)`                          | –                                                                                       | `fn(ring)` when replies settle (stub only; live mode can skip it) |
+| `Hub.summary()`                               | `{ goal, tonight, week, claims, rescued, seats, votes, byChannel, sold, rings }`        | Feeds the parfait                                                 |
+| `Hub.newDay()`                                | –                                                                                       | Demo reset                                                        |
 
 A **claim** is `{ name, channel: "discord" | "text" | "instagram", amount, item, rescued, choice? }`. `choice` is set only for poll votes.
 
@@ -35,29 +36,31 @@ Rule: Parts 1 and 2 never read `localStorage`, call `fetch` or talk to Discord. 
 
 `hub.js` keeps everything in the browser and simulates student replies a few seconds after each ring, so Parts 1 and 2 can be built and demoed without a server or a bot.
 
-## Live mode (for the demo)
+## Live mode (built: `server/`)
 
-The hub keeps the same `Hub.*` calls but swaps the stub's internals for a small server (`server/`) and the Discord bot (`bot/`):
+`server/server.js` serves the Countertop and runs the Discord bot (`server/bot.js`) in the same process. When the page is opened from that server, `hub.js` finds `/api/health` and switches to live mode on its own; the `Hub.*` calls stay the same.
 
 ```
-Countertop ──POST /rings──────────► hub server ──POST /announce──► Discord bot ──► #campus-eats
-Countertop ◄──GET /events (SSE)──── hub server ◄──POST /claims──── Discord bot ◄── judge taps Claim
+Countertop ──POST /api/rings──────► server ──posts card + buttons──► Discord #campus-eats
+Countertop ◄──GET /api/events (SSE)── server ◄──button taps──────────── judges
+                                       ▲
+                     POST /api/claims ─┘  (text gateway, or curl for testing)
 ```
 
-| Endpoint                         | Body                                                          | Reply                                                |
-| -------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------- |
-| `POST /rings` (browser → server) | `{ kind, text, discord: { head, text, actions } }`            | `{ id }`                                             |
-| `POST /announce` (server → bot)  | `{ ringId, kind, head, text, actions }`                       | `204`                                                |
-| `POST /claims` (bot → server)    | `{ ringId, name, channel: "discord", choice? }`               | `{ ok, remaining }`; `ok: false` once treats run out |
-| `GET /events` (browser ← server) | Server-sent events, `event: claim`, `data: { claim, ringId }` | The page calls the same `onClaim` listeners          |
+| Endpoint           | Body                                                                                               | Reply                                                                              |
+| ------------------ | -------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `GET /api/health`  | –                                                                                                  | `{ ok, discord, channel }`                                                         |
+| `POST /api/rings`  | `{ id, kind, text, limit, amount, item, options, discord: { head, text, actions } }`               | `201 { id, discord }`                                                              |
+| `POST /api/claims` | `{ ringId, name, channel: "discord" \| "text" \| "instagram", userId?, choice? }`                  | `{ ok, reason?, remaining }`; `reason` is `soldout`, `already`, `gone` or `choice` |
+| `GET /api/events`  | Server-sent events: `claim { ringId, claim }`, `soldout { ringId }`, `status { discord, channel }` | –                                                                                  |
+| `GET /api/rings`   | –                                                                                                  | Tonight's rings with their claims                                                  |
 
-The bot posts one embed per ring, with a button per entry in `actions` (`🍪 Claim one`, `✅ I'm coming`, or one per poll option). When a judge taps it, the bot posts to `/claims` using their Discord display name and replies only to that judge ("Saved for you, pick up at the counter").
-
-Bot and server secrets (`DISCORD_TOKEN`, `CHANNEL_ID`) live in environment variables, never in the repo.
+The server is the single judge of whether a claim counts: one claim per person per ring, never more than the ring's limit, and poll votes only for listed options. Setup and Discord steps are in [server/README.md](server/README.md). Secrets live in `server/.env` (git-ignored).
 
 ## Demo checklist
 
-1. Clear the browser data (or tap **Start a fresh day** in the parfait sheet), so the glass starts at the lunch ring.
-2. Flip the recipe card → **Sounds good 👍**.
-3. Tap the bell → 🍪 **Treats** → 🎙️ "six parfaits left, half price" → **Ring the bell**.
-4. Judges claim in Discord, the parfait builds, then tap it for tonight's totals.
+1. `cd server && npm start`, open http://localhost:3000, and check the header says **● Live on Discord**.
+2. Tap **Start a fresh day** in the parfait sheet, so the glass starts at the lunch ring.
+3. Tap the recipe card → adjust if needed → **Finalise today's plan ✓**.
+4. Tap the bell → 🍪 **Treats** → 🎙️ "six parfaits left, half price" → **Ring the bell**.
+5. Judges claim in Discord, the parfait builds, then tap it for tonight's totals.
