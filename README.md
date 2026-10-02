@@ -17,6 +17,7 @@ A buildathon prompt: Grandma's Bakeria is a neighbourhood favourite for studying
 - **The new Fall Parfait:**
   - *Regulars' vote*: neighbours pick which of three candidate recipes becomes the new Fall Parfait.
   - *Fill the cup*: each system's savings becomes a layer of the new parfait; neighbours' gifts add the topping.
+- **Café scene:** an illustrated evening outside the bakery above the footer on every tab: a student studying, a first date sharing one Fall Parfait, friends at a reunion, Grandma at the door and a napping cat.
 - **Kind words:** testimonials from the study crowd, first dates and reunions, and a comparison with The Bakery next door.
 
 ## Two-minute demo
@@ -50,6 +51,7 @@ Open http://localhost:8000. Stop the server with Ctrl+C.
 | `ledger.js` | Savings ledger, receipt and order wins |
 | `vote.js` | Regulars' vote on the new Fall Parfait |
 | `testimonials.js` | Testimonials, ratings comparison and kind-word form |
+| `cafe-scene.js` | Illustrated café scene above the footer |
 | `grandma-v2.png` | AI-generated Grandma character |
 | `bakery-reference.jpeg` | User-supplied storefront reference illustration |
 
