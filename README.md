@@ -12,7 +12,7 @@
 
 Open `index.html` for the Countertop. The earlier, fuller prototype is the **back office** at `studio.html`. How the four parts fit together, and the live-mode plan with the Discord bot, are in [CONTRACT.md](CONTRACT.md).
 
-In this build the sends and the students' claims are simulated in the browser (the stub hub). The illustrated café scene is the footer of both pages.
+Run the backend (`cd server && npm install && npm start`, then open http://localhost:3000) for the real thing: a SQLite database, the Discord bot, live claims and the automatic monthly check-in. Opened as a plain file, the Countertop runs in demo mode with simulated replies. The illustrated café scene is the footer of both pages.
 
 ---
 

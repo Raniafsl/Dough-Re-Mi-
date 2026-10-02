@@ -243,7 +243,7 @@ input:focus-visible {
 }
 .stamp {
   position: absolute;
-  top: 64px;
+  bottom: 16px;
   right: 14px;
   transform: rotate(-12deg);
   border: 3px solid var(--sage-deep);
@@ -508,9 +508,9 @@ input:focus-visible {
   position: relative;
   margin-top: 6px;
   height: 250px;
-  z-index: 1;
+  z-index: 3;
 }
-.counter-grandma {
+.grandma {
   position: absolute;
   left: 6%;
   bottom: 46px;
@@ -529,6 +529,7 @@ input:focus-visible {
 }
 .counter-front {
   position: absolute;
+  z-index: 1;
   left: 0;
   right: 0;
   bottom: 0;
@@ -595,28 +596,6 @@ input:focus-visible {
   height: 34px;
   border-radius: 6px 6px 2px 2px;
   background: linear-gradient(#fbf0dd 0 30%, #e28a45 30% 60%, #c48a4a 60%);
-}
-.counter-plant {
-  position: absolute;
-  right: 22%;
-  bottom: 148px;
-  width: 40px;
-  height: 46px;
-  z-index: 3;
-  background:
-    radial-gradient(circle at 50% 30%, #7fa36f 0 16px, transparent 17px),
-    radial-gradient(circle at 25% 45%, #7fa36f 0 12px, transparent 13px),
-    radial-gradient(circle at 75% 45%, #7fa36f 0 12px, transparent 13px);
-}
-.counter-plant::after {
-  content: "";
-  position: absolute;
-  left: 8px;
-  right: 8px;
-  bottom: 0;
-  height: 18px;
-  border-radius: 0 0 6px 6px;
-  background: #d98b5f;
 }
 
 /* Toasts */
@@ -1002,17 +981,15 @@ input:focus-visible {
     height: 360px;
   }
   .counter {
-    height: 220px;
+    height: 230px;
+    margin-top: 40px;
   }
-  .counter-grandma {
+  .grandma {
     width: 120px;
     bottom: 78px;
   }
   .cake-stand {
     right: 4%;
-  }
-  .counter-plant {
-    display: none;
   }
   .previews,
   .sheet-grid,
@@ -1210,5 +1187,252 @@ input:focus-visible {
   .shopfront .counter-top {
     left: -24px;
     right: -24px;
+  }
+}
+
+/* Grandma: sways on hover, giggles and says something when tapped */
+.grandma {
+  border: 0;
+  padding: 0;
+  background: none;
+  transform-origin: 50% 100%;
+  transition: transform 0.3s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.grandma img {
+  display: block;
+  width: 100%;
+  pointer-events: none;
+}
+.grandma:hover,
+.grandma:focus-visible {
+  transform: translateY(-14px) rotate(-3deg);
+  animation: sway-hello 1.2s ease-in-out infinite 0.3s;
+}
+@keyframes sway-hello {
+  0%,
+  100% {
+    transform: translateY(-14px) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(-16px) rotate(3deg);
+  }
+}
+.grandma.giggle {
+  animation: giggle 0.7s ease-in-out;
+}
+@keyframes giggle {
+  0% {
+    transform: translateY(-14px);
+  }
+  25% {
+    transform: translateY(-22px) scale(1.04, 0.96) rotate(-4deg);
+  }
+  50% {
+    transform: translateY(-10px) scale(0.97, 1.04) rotate(4deg);
+  }
+  75% {
+    transform: translateY(-18px) rotate(-2deg);
+  }
+  100% {
+    transform: translateY(-14px);
+  }
+}
+.heart-pop {
+  position: absolute;
+  top: 10%;
+  font-size: 20px;
+  color: #e8768f;
+  pointer-events: none;
+  animation: heart-pop 1.4s ease-out forwards;
+}
+@keyframes heart-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.6);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-70px) scale(1.2) rotate(12deg);
+  }
+}
+.grandma-says {
+  position: absolute;
+  left: calc(6% + 150px);
+  bottom: 150px;
+  max-width: min(320px, 60vw);
+  margin: 0;
+  z-index: 5;
+  background: var(--paper);
+  border: 2px solid var(--line);
+  border-radius: 18px 18px 18px 4px;
+  padding: 10px 16px;
+  font: 700 22px/1.2 var(--hand);
+  box-shadow: 0 8px 16px rgba(79, 7, 13, 0.12);
+  animation: toast-in 0.25s ease-out;
+}
+
+/* The monthly check-in letter, tucked on the counter */
+.letter {
+  position: absolute;
+  right: 26%;
+  bottom: 146px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  border: 0;
+  background: none;
+  padding: 4px 8px;
+  transform: rotate(-4deg);
+  transition: transform 0.2s;
+}
+.letter:hover {
+  transform: rotate(0) translateY(-4px);
+}
+.letter-label {
+  font: 700 18px/1 var(--hand);
+  color: var(--ink);
+}
+.badge-new {
+  position: absolute;
+  top: -10px;
+  right: -26px;
+  background: var(--pink-deep);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+.letter.has-news .ico {
+  animation: nudge-letter 2.4s ease-in-out infinite;
+}
+@keyframes nudge-letter {
+  0%,
+  80%,
+  100% {
+    transform: rotate(0);
+  }
+  85% {
+    transform: rotate(-8deg);
+  }
+  90% {
+    transform: rotate(6deg);
+  }
+  95% {
+    transform: rotate(-3deg);
+  }
+}
+.letter.wobble {
+  animation: nudge 0.5s ease-in-out;
+}
+
+/* Monthly sheet */
+.monthly-lede {
+  margin: -6px 0 6px;
+  color: var(--muted);
+}
+.monthly-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 28px;
+}
+.report-head {
+  font: 700 26px/1.2 var(--hand);
+  margin: 0 0 12px;
+}
+.vote-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) 46px;
+  gap: 10px;
+  align-items: center;
+  padding: 5px 0;
+  font-size: 15px;
+}
+.vote-row.top .vote-label {
+  font-weight: 700;
+}
+.vote-track {
+  height: 14px;
+  background: #efe4d0;
+  border-radius: 7px;
+  overflow: hidden;
+}
+.vote-track i {
+  display: block;
+  height: 100%;
+  border-radius: 7px;
+  background: var(--sage-deep);
+}
+.vote-row.top .vote-track i {
+  background: var(--pink-deep);
+}
+.vote-row b {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.takeaway {
+  margin: 12px 0 4px;
+}
+#reportBox .big-btn,
+#reportBox .secondary-btn {
+  margin-top: 12px;
+}
+#reportBox .big-btn:disabled {
+  opacity: 0.75;
+  cursor: default;
+}
+.field {
+  display: block;
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+.field input {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  font: inherit;
+  font-weight: 400;
+  font-size: 16px;
+  padding: 10px 12px;
+  border: 2px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+}
+.option-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 12px;
+}
+@media (max-width: 820px) {
+  .monthly-grid,
+  .option-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .letter {
+    right: 4%;
+  }
+  .cake-stand {
+    display: none;
+  }
+  .grandma-says {
+    left: 6%;
+    bottom: 236px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .grandma:hover,
+  .grandma:focus-visible,
+  .grandma.giggle,
+  .letter.has-news .ico,
+  .letter.wobble {
+    animation: none;
   }
 }

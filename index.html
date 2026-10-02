@@ -241,13 +241,24 @@
             </div>
           </section>
 
-          <section class="counter" aria-hidden="true">
-            <img class="counter-grandma" src="grandma-v2.png" alt="" />
-            <div class="counter-top"></div>
-            <div class="counter-front">
+          <section class="counter">
+            <button
+              class="grandma"
+              id="grandma"
+              aria-label="Say hello to Grandma"
+            >
+              <img src="grandma-v2.png" alt="" />
+            </button>
+            <p class="grandma-says" id="grandmaSays" role="status" hidden></p>
+            <div class="counter-top" aria-hidden="true"></div>
+            <div class="counter-front" aria-hidden="true">
               <span class="cake-stand"><i></i></span>
-              <span class="counter-plant"></span>
             </div>
+            <button class="letter" id="letterBtn" aria-haspopup="dialog">
+              <i data-icon="letter" class="ico ico-lg"></i>
+              <span class="letter-label">Monthly check-in</span>
+              <span class="badge-new" id="letterBadge" hidden>New report</span>
+            </button>
           </section>
         </div>
 
@@ -298,6 +309,39 @@
           Finalise today’s plan ✓
         </button>
         <p id="planStatus" aria-live="polite"></p>
+      </div>
+    </dialog>
+
+    <!-- Monthly check-in -->
+    <dialog class="sheet" id="monthlyDialog" aria-labelledby="monthlyTitle">
+      <form method="dialog" class="sheet-close">
+        <button aria-label="Close">×</button>
+      </form>
+      <h2 id="monthlyTitle">
+        <i data-icon="letter" class="ico ico-md"></i> Monthly check-in
+      </h2>
+      <p class="monthly-lede" id="monthlyLede"></p>
+      <div class="monthly-grid">
+        <section aria-labelledby="reportHead">
+          <h3 id="reportHead">Latest report</h3>
+          <div id="reportBox"></div>
+        </section>
+        <section aria-labelledby="nextHead">
+          <h3 id="nextHead">Next poll</h3>
+          <label class="field"
+            >Question<input id="monthlyQuestion" type="text" maxlength="200"
+          /></label>
+          <div class="option-fields" id="monthlyOptions"></div>
+          <div class="plan-actions">
+            <button type="button" class="secondary-btn" id="monthlySave">
+              Save for next month
+            </button>
+            <button type="button" class="big-btn" id="monthlySendNow">
+              Send it now
+            </button>
+          </div>
+          <p class="fine" id="monthlyStatus" aria-live="polite"></p>
+        </section>
       </div>
     </dialog>
 

@@ -67,6 +67,11 @@ const ICONS = {
     <circle cx="24" cy="24" r="12" fill="none" stroke="#c99a3c" stroke-width="2"/>
     <path d="M24 23c-2-3.6-7-1.6-4.6 1.6L24 29l4.6-4.4c2.4-3.2-2.6-5.2-4.6-1.6Z" fill="#e8768f"/>`,
   check: `<circle cx="24" cy="24" r="17" fill="#cfe3d1" ${ICON_LINE}/><path d="M16 24.5l5.5 5.5L33 18.5" fill="none" ${ICON_LINE} stroke-width="3"/>`,
+  letter: `<rect x="6" y="12" width="36" height="26" rx="4" fill="#fbe9cf" ${ICON_LINE}/>
+    <path d="M7 14l17 13l17-13" fill="none" ${ICON_LINE}/>
+    <path d="M7 37l12-11M41 37L29 26" fill="none" stroke="#6b4a3a" stroke-width="1.6" stroke-linecap="round"/>
+    <circle cx="24" cy="27" r="6" fill="#e8768f" ${ICON_LINE}/>
+    <path d="M24 26.6c-1-1.8-3.4-.8-2.3.8L24 29.5l2.3-2.1c1.1-1.6-1.3-2.6-2.3-.8Z" fill="#fff"/>`,
   mic: `<rect x="17" y="6" width="14" height="24" rx="7" fill="#f3c5d4" ${ICON_LINE}/>
     <path d="M11 22q0 12 13 12t13-12M24 34v7M17 41h14" fill="none" ${ICON_LINE}/>
     <path d="M21 12v6" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".85"/>`,

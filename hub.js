@@ -7,6 +7,9 @@
 //   Hub.finalPlan()             → null, or { at, items: [{ id, emoji, name, qty, when }] }
 //   Hub.finalisePlan(items)     → saves Grandma's accepted plan
 //   Hub.mode()                  → { live, discord, channel }; Hub.onMode(fn) when it changes
+//   Hub.monthly()               → { question, options, current, reports, nextRun, trial }
+//   Hub.setMonthly({ question, options }), Hub.runMonthly(), Hub.closeMonthlyNow()
+//   Hub.markReportSeen(), Hub.addTrial(name, month), Hub.onMonthly(fn)
 //   Hub.rewrite(kind, sentence) → { insta, discord, sms, read }  (kind: treats | special | event | poll)
 //   Hub.ring({ kind, text })    → ring   (sends everywhere; claims arrive later)
 //   Hub.onClaim(fn)             → fn(claim, ring) for every claim from any channel
@@ -363,6 +366,26 @@ const Hub = (() => {
   let mode = { live: false, discord: false, channel: null };
   const modeListeners = [];
 
+  // In live mode the server's database is the source of truth: load today
+  // from it, then keep the browser copy as a cache.
+  const syncListeners = [],
+    post = (url, body, method = "POST") =>
+      fetch(url, {
+        method,
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body || {}),
+      }).catch(() => {});
+  async function syncFromServer() {
+    try {
+      const s = await fetch("/api/state").then((r) => r.json());
+      state = { day: todayKey, finalPlan: s.finalPlan, rings: s.rings };
+      monthly = { ...monthly, ...s.monthly };
+      save();
+      saveMonthly();
+      syncListeners.forEach((fn) => fn());
+    } catch {}
+  }
+
   function goLive(health) {
     mode = {
       live: true,
@@ -370,15 +393,30 @@ const Hub = (() => {
       channel: health.channel || null,
     };
     modeListeners.forEach((fn) => fn(mode));
+    syncFromServer();
     const events = new EventSource("/api/events");
     events.addEventListener("claim", (e) => {
       const { ringId, claim } = JSON.parse(e.data),
         r = state.rings.find((x) => x.id === ringId);
       if (r) addClaim(r, claim);
+      else if (ringId === monthly.current?.id)
+        monthlyVote(claim.choice, claim.channel);
     });
     events.addEventListener("soldout", (e) => {
       const r = state.rings.find((x) => x.id === JSON.parse(e.data).ringId);
       if (r) doneListeners.forEach((fn) => fn(r));
+    });
+    // The server sends the monthly poll by itself on the 1st, and closes it.
+    events.addEventListener("monthly-open", (e) => {
+      const m = JSON.parse(e.data);
+      if (monthly.current?.id === m.id) return;
+      monthly.current = { ...m, votes: {}, byChannel: {}, open: true };
+      saveMonthly();
+      notifyMonthly({ type: "open" });
+    });
+    events.addEventListener("monthly-close", async () => {
+      await syncFromServer();
+      notifyMonthly({ type: "report", report: monthly.reports[0] });
     });
     events.addEventListener("status", (e) => {
       const h = JSON.parse(e.data);
@@ -435,6 +473,161 @@ const Hub = (() => {
     return r;
   }
 
+  // ── Monthly check-in: an automatic "what should Grandma make?" poll ──
+  // Goes out on the 1st of every month at 10 AM, closes after a few days,
+  // and leaves Grandma a plain-English report on her counter.
+  const MONTHLY_KEY = "countertop-monthly-v1",
+    monthName = (d) => d.toLocaleDateString("en-CA", { month: "long" }),
+    nextFirst = () => {
+      const d = new Date();
+      return new Date(d.getFullYear(), d.getMonth() + 1, 1, 10);
+    };
+  function seededMonthly() {
+    const lastMonth = new Date();
+    lastMonth.setDate(0);
+    return {
+      question: "What would you like to see at Grandma’s next month?",
+      options: [
+        "Pumpkin pie parfait",
+        "Gluten-free cookies",
+        "Hot cocoa bar",
+        "Sunday baking class",
+      ],
+      closeDays: 3,
+      current: null,
+      trial: null,
+      reports: [
+        {
+          month: monthName(lastMonth),
+          question: "What would you like to see at Grandma’s next month?",
+          results: [
+            ["Apple Cider Crisp parfait", 46],
+            ["Chai Pear & Ginger parfait", 31],
+            ["Vegan cookies", 22],
+            ["Saturday study brunch", 18],
+          ],
+          byChannel: { discord: 64, text: 35, instagram: 18 },
+          seen: false,
+        },
+      ],
+    };
+  }
+  let monthly = (() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(MONTHLY_KEY));
+      if (saved?.reports) return saved;
+    } catch {}
+    return seededMonthly();
+  })();
+  const saveMonthly = () => {
+      try {
+        localStorage.setItem(MONTHLY_KEY, JSON.stringify(monthly));
+      } catch {}
+    },
+    monthlyListeners = [],
+    notifyMonthly = (event) => monthlyListeners.forEach((fn) => fn(event));
+
+  function monthlyVote(choice, channel) {
+    const c = monthly.current;
+    if (!c?.open || !c.options.includes(choice)) return;
+    c.votes[choice] = (c.votes[choice] || 0) + 1;
+    c.byChannel[channel] = (c.byChannel[channel] || 0) + 1;
+    saveMonthly();
+    notifyMonthly({ type: "vote" });
+  }
+
+  function closeMonthly() {
+    const c = monthly.current;
+    if (!c) return;
+    const report = {
+      month: c.month,
+      question: c.question,
+      results: c.options
+        .map((o) => [o, c.votes[o] || 0])
+        .sort((a, b) => b[1] - a[1]),
+      byChannel: c.byChannel,
+      seen: false,
+    };
+    monthly.reports.unshift(report);
+    monthly.current = null;
+    saveMonthly();
+    notifyMonthly({ type: "report", report });
+  }
+
+  // STUB: neighbours vote over a few seconds, then the poll closes itself.
+  function simulateMonthly(c) {
+    const weights = c.options.map((_, i) => [0.4, 0.27, 0.19, 0.14][i] ?? 0.1),
+      total = weights.reduce((a, b) => a + b, 0),
+      n = 36 + Math.floor(Math.random() * 14),
+      channels = ["discord", "discord", "discord", "text", "text", "instagram"];
+    let i = 0;
+    const timer = setInterval(() => {
+      let r = Math.random() * total,
+        k = 0;
+      while ((r -= weights[k]) > 0 && k < weights.length - 1) k++;
+      monthlyVote(
+        c.options[k],
+        channels[Math.floor(Math.random() * channels.length)],
+      );
+      if (++i >= n) {
+        clearInterval(timer);
+        setTimeout(closeMonthly, 900);
+      }
+    }, 7000 / n);
+  }
+
+  function runMonthly() {
+    if (monthly.current?.open) return monthly.current;
+    const now = new Date();
+    monthly.current = {
+      id: `monthly-${Date.now()}`,
+      month: monthName(now),
+      question: monthly.question,
+      options: monthly.options.filter(Boolean),
+      sentAt: now.toISOString(),
+      closesAt: new Date(
+        now.getTime() + monthly.closeDays * 86400000,
+      ).toISOString(),
+      votes: {},
+      byChannel: {},
+      open: true,
+    };
+    saveMonthly();
+    notifyMonthly({ type: "open" });
+    if (mode.live)
+      fetch("/api/monthly/run", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          id: monthly.current.id,
+          question: monthly.current.question,
+          options: monthly.current.options,
+          closeDays: monthly.closeDays,
+        }),
+      }).catch(() => {});
+    else simulateMonthly(monthly.current);
+    return monthly.current;
+  }
+
+  function trialItem() {
+    const t = monthly.trial;
+    if (!t || t.day !== todayKey) return null;
+    return {
+      id: "trial",
+      emoji: "⭐",
+      icon: /parfait/i.test(t.name)
+        ? "parfait"
+        : /cookie/i.test(t.name)
+          ? "cookie"
+          : "star",
+      name: `${t.name} (trial)`,
+      qty: 12,
+      step: 6,
+      when: "10:00 AM",
+      why: `Top pick in the ${t.month} poll, so try a small batch`,
+    };
+  }
+
   function summary() {
     const claims = state.rings.flatMap((r) => r.claims),
       tonight = claims.reduce((s, c) => s + c.amount, 0),
@@ -467,7 +660,12 @@ const Hub = (() => {
 
   return {
     kinds,
-    plan: () => todaysPlan,
+    plan: () => {
+      const trial = trialItem();
+      return trial
+        ? { ...todaysPlan, items: [...todaysPlan.items, trial] }
+        : todaysPlan;
+    },
     finalPlan: () => state.finalPlan,
     finalisePlan(items) {
       state.finalPlan = {
@@ -485,7 +683,50 @@ const Hub = (() => {
         })),
       };
       save();
+      if (mode.live) post("/api/plan", state.finalPlan, "PUT");
     },
+    monthly: () => ({ ...monthly, nextRun: nextFirst() }),
+    setMonthly({ question, options }) {
+      if (question) monthly.question = question;
+      if (options)
+        monthly.options = options
+          .map((o) => o.trim())
+          .filter(Boolean)
+          .slice(0, 4);
+      saveMonthly();
+      if (mode.live)
+        fetch("/api/monthly/options", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            question: monthly.question,
+            options: monthly.options,
+            closeDays: monthly.closeDays,
+          }),
+        }).catch(() => {});
+    },
+    runMonthly,
+    closeMonthlyNow() {
+      if (mode.live && monthly.current)
+        fetch("/api/monthly/close", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ id: monthly.current.id }),
+        }).catch(() => {});
+      else closeMonthly();
+    },
+    markReportSeen() {
+      if (monthly.reports[0]) monthly.reports[0].seen = true;
+      saveMonthly();
+      if (mode.live) post("/api/monthly/seen");
+    },
+    addTrial(name, month) {
+      monthly.trial = { name, month, day: todayKey };
+      saveMonthly();
+      if (mode.live) post("/api/monthly/trial", monthly.trial);
+    },
+    onSync: (fn) => syncListeners.push(fn),
+    onMonthly: (fn) => monthlyListeners.push(fn),
     mode: () => mode,
     onMode: (fn) => modeListeners.push(fn),
     rewrite,
@@ -493,9 +734,13 @@ const Hub = (() => {
     onClaim: (fn) => claimListeners.push(fn),
     onRingDone: (fn) => doneListeners.push(fn),
     summary,
-    newDay() {
+    async newDay() {
       state = seededDay();
       save();
+      if (mode.live) {
+        await post("/api/day/reset");
+        await syncFromServer();
+      }
     },
   };
 })();

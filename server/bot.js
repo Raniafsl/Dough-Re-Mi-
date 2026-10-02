@@ -64,7 +64,12 @@ export function buttonsFor(ring, disabled = false) {
 }
 
 export function startBot({ token, channelId, onClaim, onStatus }) {
-  const bot = { ready: false, channelName: null, announce: async () => false };
+  const bot = {
+    ready: false,
+    channelName: null,
+    announce: async () => false,
+    postResults: async () => false,
+  };
   if (!token || !channelId) return bot;
 
   const client = new Client({ intents: [GatewayIntentBits.Guilds] }),
@@ -106,6 +111,34 @@ export function startBot({ token, channelId, onClaim, onStatus }) {
       return true;
     } catch (err) {
       console.error(`Couldn't post the ring: ${err.message}`);
+      return false;
+    }
+  };
+
+  // When a monthly check-in closes: thank everyone and show the tally.
+  bot.postResults = async (ring, results) => {
+    if (!bot.ready) return false;
+    const total = results.reduce((t, [, n]) => t + n, 0) || 1,
+      lines = results.map(
+        ([o, n], i) =>
+          `${i === 0 ? "🏆" : "▫️"} **${o}**: ${n} vote${n === 1 ? "" : "s"} (${Math.round((n / total) * 100)}%)`,
+      );
+    try {
+      await messages.get(ring.id)?.edit({ components: buttonsFor(ring, true) });
+      await channel.send({
+        embeds: [
+          new EmbedBuilder()
+            .setColor(PINK)
+            .setTitle("📊 The neighbours have spoken!")
+            .setDescription(`${ring.text}\n\n${lines.join("\n")}`)
+            .setFooter({
+              text: `Thank you! Grandma will try “${results[0]?.[0]}” first.`,
+            }),
+        ],
+      });
+      return true;
+    } catch (err) {
+      console.error(`Couldn't post the results: ${err.message}`);
       return false;
     }
   };

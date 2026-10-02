@@ -266,6 +266,169 @@ Hub.onRingDone((ring) => {
   renderParfait();
 });
 
+// ── The monthly check-in letter ────────────────────────────────────────
+const longDate = (d) =>
+  new Date(d).toLocaleDateString("en-CA", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+
+function renderLetter() {
+  const m = Hub.monthly(),
+    fresh = m.reports[0] && !m.reports[0].seen;
+  $("letterBadge").hidden = !(fresh || m.current?.open);
+  $("letterBadge").textContent = m.current?.open ? "Voting now" : "New report";
+  $("letterBtn").classList.toggle("has-news", !!(fresh || m.current?.open));
+  $("letterBtn").setAttribute(
+    "aria-label",
+    `Monthly check-in${m.current?.open ? ", voting now" : fresh ? ", new report" : ""}`,
+  );
+}
+
+function bars(results) {
+  const total = results.reduce((t, [, n]) => t + n, 0) || 1;
+  return results
+    .map(
+      ([o, n], i) => `<div class="vote-row${i === 0 ? " top" : ""}">
+        <span class="vote-label"></span>
+        <span class="vote-track"><i style="width:${(n / total) * 100}%"></i></span>
+        <b>${Math.round((n / total) * 100)}%</b>
+      </div>`,
+    )
+    .join("");
+}
+function fillLabels(box, results) {
+  box
+    .querySelectorAll(".vote-label")
+    .forEach((el, i) => (el.textContent = results[i][0]));
+}
+
+function renderMonthlySheet() {
+  const m = Hub.monthly(),
+    box = $("reportBox"),
+    report = m.reports[0];
+  $("monthlyLede").textContent =
+    `Goes out by itself on the 1st of every month at 10 AM, to Discord, Instagram and text. Voting stays open ${m.closeDays} days, then the results land on your counter.`;
+  if (m.current?.open) {
+    const results = m.current.options.map((o) => [o, m.current.votes[o] || 0]),
+      total = results.reduce((t, [, n]) => t + n, 0);
+    $("reportHead").textContent = "Voting now";
+    box.innerHTML = `<p class="report-head">“${m.current.question}”</p>
+      ${bars(results)}
+      <p class="fine">${total} vote${total === 1 ? "" : "s"} so far · closes ${longDate(m.current.closesAt)}</p>
+      <button type="button" class="secondary-btn" id="closeNow">Close voting now</button>`;
+    fillLabels(box, results);
+    box.querySelector("#closeNow").addEventListener("click", () => {
+      Hub.closeMonthlyNow();
+      $("monthlyStatus").textContent = "Closing the poll…";
+    });
+  } else if (report) {
+    const [top, second] = report.results,
+      total = report.results.reduce((t, [, n]) => t + n, 0),
+      share = Math.round((top[1] / (total || 1)) * 100),
+      trialToday =
+        m.trial?.name === top[0] && m.trial?.day === new Date().toDateString(),
+      ch = report.byChannel || {};
+    $("reportHead").textContent = `${report.month}’s report`;
+    box.innerHTML = `<p class="report-head">The neighbours want <b class="top-pick"></b>.</p>
+      ${bars(report.results)}
+      <p class="takeaway"></p>
+      <p class="fine">${total} votes · ${ch.discord || 0} on Discord, ${ch.text || 0} by text, ${ch.instagram || 0} on Instagram</p>
+      <button type="button" class="big-btn" id="addTrial" ${trialToday ? "disabled" : ""}>${trialToday ? "On today’s plan ✓" : "Add a trial batch to today’s plan"}</button>`;
+    box.querySelector(".top-pick").textContent = top[0];
+    box.querySelector(".takeaway").textContent =
+      `${share}% picked it${second ? `, and “${second[0]}” came second` : ""}. A small trial batch is a safe way to start.`;
+    fillLabels(box, report.results);
+    box.querySelector("#addTrial").addEventListener("click", () => {
+      Hub.addTrial(top[0], report.month);
+      renderMonthlySheet();
+      toast(`${top[0]} added to today’s plan as a trial batch.`, "scroll");
+    });
+  } else {
+    $("reportHead").textContent = "Latest report";
+    box.innerHTML =
+      '<p class="fine">No reports yet. The first one arrives after the 1st.</p>';
+  }
+  $("nextHead").textContent = `Next poll · ${longDate(m.nextRun)}, 10 AM`;
+  if (document.activeElement?.closest?.("#monthlyOptions, #monthlyQuestion"))
+    return;
+  $("monthlyQuestion").value = m.question;
+  $("monthlyOptions").innerHTML = [0, 1, 2, 3]
+    .map(
+      (i) =>
+        `<label class="field">Choice ${i + 1}<input type="text" maxlength="60" data-opt="${i}" /></label>`,
+    )
+    .join("");
+  $("monthlyOptions")
+    .querySelectorAll("input")
+    .forEach((inp, i) => (inp.value = m.options[i] || ""));
+  $("monthlySendNow").disabled = !!m.current?.open;
+}
+
+function saveMonthlyFields() {
+  Hub.setMonthly({
+    question: $("monthlyQuestion").value,
+    options: [...$("monthlyOptions").querySelectorAll("input")].map(
+      (i) => i.value,
+    ),
+  });
+}
+
+Hub.onMonthly((e) => {
+  renderLetter();
+  if ($("monthlyDialog").open) renderMonthlySheet();
+  if (e.type === "report") {
+    toast(
+      "Your monthly report is in. Tap the letter on the counter.",
+      "letter",
+    );
+    wobble($("letterBtn"));
+  }
+});
+
+// ── Grandma ────────────────────────────────────────────────────────────
+// She sways when you hover, and says something kind when you tap her.
+function grandmaLine() {
+  const final = Hub.finalPlan(),
+    s = Hub.summary(),
+    lines = [
+      "Have you eaten yet, dear?",
+      "Midterms week! I’ll keep the cookies coming.",
+      "Take a cookie for the road.",
+      "The Bakery next door can’t copy a grandma.",
+    ];
+  if (!final)
+    lines.unshift("Shall we look at today’s bake? Tap the recipe card.");
+  if (s.tonight >= s.goal)
+    lines.unshift("Look at that parfait! Cherry on top!");
+  else if (s.claims > 8)
+    lines.unshift("The students came! The parfait is growing.");
+  if (Hub.monthly().reports[0] && !Hub.monthly().reports[0].seen)
+    lines.unshift("A letter came! The neighbours voted.");
+  return lines[Math.floor(Math.random() * Math.min(lines.length, 3))];
+}
+let grandmaTimer;
+function grandmaSays(text) {
+  const say = $("grandmaSays");
+  say.textContent = text;
+  say.hidden = false;
+  clearTimeout(grandmaTimer);
+  grandmaTimer = setTimeout(() => (say.hidden = true), 3800);
+}
+function hearts() {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  for (let i = 0; i < 4; i++) {
+    const h = document.createElement("span");
+    h.className = "heart-pop";
+    h.textContent = "♥";
+    h.style.left = `${30 + Math.random() * 40}%`;
+    h.style.animationDelay = `${i * 0.12}s`;
+    $("grandma").append(h);
+    setTimeout(() => h.remove(), 1600);
+  }
+}
+
 // ── Wiring ─────────────────────────────────────────────────────────────
 $("recipeCard").addEventListener("click", openPlan);
 $("planRows").addEventListener("click", (e) => {
@@ -309,8 +472,39 @@ for (const d of document.querySelectorAll("dialog.sheet"))
     if (e.target === d) d.close();
   });
 Hub.onMode(renderMode);
+Hub.onSync(() => {
+  renderRecipe();
+  renderParfait();
+  renderLetter();
+});
+$("letterBtn").addEventListener("click", () => {
+  Hub.markReportSeen();
+  renderLetter();
+  renderMonthlySheet();
+  $("monthlyDialog").showModal();
+});
+$("monthlySave").addEventListener("click", () => {
+  saveMonthlyFields();
+  $("monthlyStatus").textContent = "Saved. These go out on the 1st.";
+});
+$("monthlySendNow").addEventListener("click", () => {
+  saveMonthlyFields();
+  Hub.runMonthly();
+  $("monthlyStatus").textContent = Hub.mode().discord
+    ? "Sent to Discord. Votes will show up here as they come in."
+    : "Sent. Votes will show up here as they come in.";
+  renderMonthlySheet();
+});
+$("grandma").addEventListener("click", () => {
+  $("grandma").classList.remove("giggle");
+  void $("grandma").offsetWidth;
+  $("grandma").classList.add("giggle");
+  hearts();
+  grandmaSays(grandmaLine());
+});
 
 renderHeader();
 renderRecipe();
 renderParfait();
 renderMode(Hub.mode());
+renderLetter();
