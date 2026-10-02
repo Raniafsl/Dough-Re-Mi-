@@ -1,24 +1,330 @@
-const $=id=>document.getElementById(id),money=n=>new Intl.NumberFormat('en-CA',{style:'currency',currency:'CAD'}).format(n);const num=id=>{const e=$(id);return Math.min(Number(e.max)||Infinity,Math.max(Number(e.min)||0,Number(e.value)||0))};
-document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(t=>(t.classList.toggle('active',t===b),t.setAttribute('aria-pressed',String(t===b))));document.querySelectorAll('.view').forEach(v=>v.hidden=v.id!==b.dataset.view)}));
-let optimized=false,animation;const original='M307 205 L88 128 L307 205 L492 125 L307 205 L88 128 L307 205 L492 125 L307 205',improved='M307 205 L88 128 L492 125 L307 205';
-function duration(s){return `${Math.floor(s/60)}m ${Math.round(s%60)}s`}function movement(){const before=68+num('walking')+num('reaching'),after=68+Math.min(num('walking'),24)+Math.min(num('reaching'),7),seconds=(before-after)*num('daily');$('minutes').innerHTML=(seconds/60).toFixed(1)+'<span>minutes / day</span>';$('labor').textContent=money(seconds/3600*num('wage'))+' / day';$('before').textContent=duration(before);$('after').textContent=duration(after)}['daily','wage','walking','reaching'].forEach(id=>$(id).addEventListener('input',()=>{movement();cost();if(challengeStarted)updateChallenge()}));movement();
-$('optimize').addEventListener('click',()=>{optimized=!optimized;$('route').setAttribute('d',optimized?improved:original);$('route').setAttribute('stroke',optimized?'#639772':'#d77a97');$('routeLabel').textContent=optimized?'Improved route · 3 trips':'Current route · 8 trips';$('optimize').textContent=optimized?'↺ Show original layout':'✧ Try a better layout';$('playStatus').textContent=optimized?'Collect together. Bring to assembly.':'Ready when you are.';cancelAnimationFrame(animation);$('walker').setAttribute('transform','translate(307 205)');$('grandmaSprite').setAttribute('transform','');$('play').textContent='▶ Play workflow';cost()});
-$('play').addEventListener('click',()=>{cancelAnimationFrame(animation);let start;const path=$('route'),length=path.getTotalLength();$('play').textContent='↺ Restart replay';function frame(t){start??=t;let p=Math.min((t-start)/7000,1),pos=path.getPointAtLength(p*length);$('walker').setAttribute('transform',`translate(${pos.x} ${pos.y})`);$('grandmaSprite').setAttribute('transform',`rotate(${Math.sin(p*90)*4} 0 -15)`);$('playStatus').textContent=p<1?`Grandma is ${optimized?'taking the shorter route':'collecting ingredients'}…`:'Replay complete. Tiny changes add up.';if(p<1)animation=requestAnimationFrame(frame);else {$('play').textContent='▶ Replay workflow';$('grandmaSprite').setAttribute('transform','')}}animation=requestAnimationFrame(frame)});
-let suggestion=0;function cost(){let qty=num('qty'),ingredients=qty*num('ingredient'),pack=qty*num('packaging'),labor=(num('prep')+($('linkWorkflow').checked?num('qty')*(optimized?Math.min(num('walking'),24)+Math.min(num('reaching'),7):num('walking')+num('reaching'))/60:0))/60*num('orderWage'),cleanup=num('cleanup')/60*num('orderWage'),rush=num('rush'),displaced=num('displaced')*num('lost'),total=ingredients+pack+labor+cleanup+rush+displaced,profit=num('quote')-total,margin=num('margin')/100; suggestion=total/(1-margin);$('profit').textContent=money(profit);$('profit').style.color=profit<0?'#ac4966':'#394d45';$('marginLabel').textContent=num('margin')+'%';$('verdict').textContent=profit<0?'This order loses money at this quote.':num('quote')<suggestion?'Profitable, but below your target margin.':'This quote meets your target margin. ♡';$('breakdown').innerHTML=[['Ingredients',ingredients],['Packaging',pack],['Making time',labor],['Cleanup + setup',cleanup],['Rush delivery',rush],['Displaced profit',displaced],['Total true cost',total]].map(([name,value])=>`<div class="cost-row"><span>${name}</span><b>${money(value)}</b></div>`).join('');$('suggested').textContent=money(suggestion)}document.querySelectorAll('#cost input').forEach(e=>e.addEventListener('input',cost));$('useQuote').addEventListener('click',()=>{$('quote').value=(Math.ceil(suggestion*100)/100).toFixed(2);cost();setOrderState('RE-QUOTED',`Your quote of ${money(num('quote'))} is ready for the customer. This demo does not send messages.`)});cost();
-const customers=[
-{name:'Poppy · a birthday surprise',speech:'“24 strawberry cupcakes, please! Tomorrow at 11. My budget is $120.”',product:'🍓 Strawberry cupcakes',deadline:'Tomorrow · 11:00 AM',values:{qty:24,quote:120,ingredient:1.3,packaging:.4,prep:42,cleanup:15,rush:18,displaced:8,lost:2.5}},
-{name:'Milo · a last-minute office party',speech:'“Can you do 48 chocolate cupcakes by 9 tomorrow? I can offer $180!”',product:'🍫 Chocolate cupcakes',deadline:'Tomorrow · 9:00 AM',values:{qty:48,quote:180,ingredient:1.6,packaging:.5,prep:90,cleanup:25,rush:25,displaced:20,lost:2.5}},
-{name:'June · a cozy weekend picnic',speech:'“12 lemon cupcakes for Saturday, please. Is $72 enough? No rush!”',product:'🍋 Lemon cupcakes',deadline:'Saturday · 12:00 PM',values:{qty:12,quote:72,ingredient:1.1,packaging:.35,prep:25,cleanup:10,rush:0,displaced:0,lost:2.5}}
-];let customerIndex=0,ticketCount=1;
-function setOrderState(state,message){$('ticketStatus').textContent=state;$('orderResponse').textContent=message}
-function ticketSummary(){$('ticketSummary').textContent=`${num('qty')} cupcakes · offered ${money(num('quote'))}`}
-$('nextCustomer').addEventListener('click',()=>{customerIndex=(customerIndex+1)%customers.length;ticketCount++;const c=customers[customerIndex];for(const [id,value]of Object.entries(c.values))$(id).value=value;$('customerName').textContent=c.name;$('customerSpeech').textContent=c.speech;$('ticketProduct').textContent=c.product;$('ticketDeadline').textContent=c.deadline;$('ticketNumber').textContent='#'+String(ticketCount).padStart(3,'0');setOrderState('NEW REQUEST','Check the true cost before you say yes.');cost();ticketSummary();const scene=document.querySelector('.customer-scene');scene.classList.remove('customer-arrival');void scene.offsetWidth;scene.classList.add('customer-arrival')});
-$('acceptOrder').addEventListener('click',()=>setOrderState('ACCEPTED',`Order accepted at ${money(num('quote'))}. ${num('quote')<suggestion?'This is below your target margin.':'Your target margin is covered.'}`));
-$('declineOrder').addEventListener('click',()=>setOrderState('PASSED','You passed on this request. Another customer will be along soon.'));
-document.querySelectorAll('#cost input').forEach(e=>e.addEventListener('input',()=>{ticketSummary();setOrderState('EDITING','Quote updated. Review the costs before you decide.')}));$('useQuote').addEventListener('click',ticketSummary);
-let challengeStarted=false;
-function showView(id){document.querySelectorAll('.tab').forEach(t=>(t.classList.toggle('active',t.dataset.view===id),t.setAttribute('aria-pressed',String(t.dataset.view===id))));document.querySelectorAll('.view').forEach(v=>v.hidden=v.id!==id)}
-function modelOrder(shortRoute,later){const travel=48*(shortRoute?Math.min(num('walking'),24)+Math.min(num('reaching'),7):num('walking')+num('reaching'))/60,time=90+travel+25,capacity=later?160:100,displaced=time>capacity?50:0,rush=later?0:25,total=76.8+24+(90+travel+25)/60*num('wage')+rush+displaced;return{travel,time,capacity,displaced,rush,total,profit:180-total}}
-function updateChallenge(){if(!challengeStarted)return;const smart=$('smartLayout').checked,later=$('laterPickup').checked,before=modelOrder(false,false),after=modelOrder(smart,later);if(optimized!==smart)$('optimize').click();$('linkWorkflow').checked=true;for(const[id,value]of Object.entries(customers[1].values))$(id).value=value;$('orderWage').value=num('wage');$('rush').value=after.rush;$('displaced').value=after.displaced?20:0;cost();ticketSummary();$('customerName').textContent=customers[1].name;$('customerSpeech').textContent=customers[1].speech;$('ticketProduct').textContent=customers[1].product;$('ticketDeadline').textContent=later?'Tomorrow · 10:00 AM (proposed)':'Tomorrow · 9:00 AM';setOrderState('PLAN PREVIEW',later?'Later pickup is proposed, not confirmed by the customer.':'Review this rush order before accepting.');$('capacityText').textContent=after.capacity+' minutes';$('timeFill').style.width=Math.min(100,after.time/after.capacity*100)+'%';$('timeFill').style.background=after.time>after.capacity?'#cc7890':'#8db68d';$('scheduleStatus').textContent=`${after.time.toFixed(1)} min needed · ${after.time>after.capacity?(after.time-after.capacity).toFixed(1)+' min over the available slot':(after.capacity-after.time).toFixed(1)+' min left for Grandma to breathe'}`;$('baselineProfit').textContent=money(before.profit);$('scenarioProfit').textContent=money(after.profit);$('scenarioProfit').style.color=after.profit<0?'#a54f70':'#3d7550';const saved=before.time-after.time;$('receiptRows').innerHTML=[['Time freed',saved.toFixed(1)+' min'],['Labor value freed',money(saved/60*num('wage'))],['Rush fee avoided',money(before.rush-after.rush)],['Regular-order profit protected',money(before.displaced-after.displaced)],['Profit improvement',money(after.profit-before.profit)]].map(([k,v])=>`<div class="cost-row"><span>${k}</span><b>${v}</b></div>`).join('');$('humanResult').textContent=saved>0?`${saved.toFixed(1)} fewer minutes running between stations. More room for the part only Grandma can do.`:'Small changes can make room for Grandma’s regulars, her craft, and herself.'}
-$('startChallenge').addEventListener('click',()=>{challengeStarted=true;$('smartLayout').checked=false;$('laterPickup').checked=false;$('challengeArea').hidden=false;$('receipt').hidden=false;$('receiptEmpty').hidden=true;updateChallenge();$('startChallenge').textContent='↺ Restart the rush-order demo'});
-['smartLayout','laterPickup'].forEach(id=>$(id).addEventListener('change',updateChallenge));$('replayImpact').addEventListener('click',()=>{showView('movement');$('play').click()});$('reviewImpact').addEventListener('click',()=>showView('cost'));$('printReceipt').addEventListener('click',()=>window.print());
+const $ = (id) => document.getElementById(id),
+  money = (n) =>
+    new Intl.NumberFormat("en-CA", {
+      style: "currency",
+      currency: "CAD",
+    }).format(n);
+const num = (id) => {
+  const e = $(id);
+  return Math.min(
+    Number(e.max) || Infinity,
+    Math.max(Number(e.min) || 0, Number(e.value) || 0),
+  );
+};
+document.querySelectorAll(".tab").forEach((b) =>
+  b.addEventListener("click", () => {
+    document
+      .querySelectorAll(".tab")
+      .forEach(
+        (t) => (
+          t.classList.toggle("active", t === b),
+          t.setAttribute("aria-pressed", String(t === b))
+        ),
+      );
+    document
+      .querySelectorAll(".view")
+      .forEach((v) => (v.hidden = v.id !== b.dataset.view));
+  }),
+);
+let optimized = false,
+  animation,
+  improvedWalk = 24,
+  improvedReach = 7;
+// Seconds of walking + reaching per item, on the current or improved route.
+function stepSeconds(short) {
+  return short
+    ? Math.min(num("walking"), improvedWalk) +
+        Math.min(num("reaching"), improvedReach)
+    : num("walking") + num("reaching");
+}
+function duration(s) {
+  return `${Math.floor(s / 60)}m ${Math.round(s % 60)}s`;
+}
+function movement() {
+  const before = 68 + stepSeconds(false),
+    after = 68 + stepSeconds(true),
+    seconds = (before - after) * num("daily");
+  $("minutes").innerHTML =
+    (seconds / 60).toFixed(1) + "<span>minutes / day</span>";
+  $("labor").textContent = money((seconds / 3600) * num("wage")) + " / day";
+  $("before").textContent = duration(before);
+  $("after").textContent = duration(after);
+}
+["daily", "wage", "walking", "reaching"].forEach((id) =>
+  $(id).addEventListener("input", () => {
+    movement();
+    cost();
+    if (challengeStarted) updateChallenge();
+  }),
+);
+movement();
+let suggestion = 0,
+  lastProfit = 0;
+function cost() {
+  let qty = num("qty"),
+    ingredients = qty * num("ingredient"),
+    pack = qty * num("packaging"),
+    labor =
+      ((num("prep") +
+        ($("linkWorkflow").checked
+          ? (num("qty") * stepSeconds(optimized)) / 60
+          : 0)) /
+        60) *
+      num("orderWage"),
+    cleanup = (num("cleanup") / 60) * num("orderWage"),
+    rush = num("rush"),
+    displaced = num("displaced") * num("lost"),
+    total = ingredients + pack + labor + cleanup + rush + displaced,
+    profit = num("quote") - total,
+    margin = num("margin") / 100;
+  suggestion = total / (1 - margin);
+  lastProfit = profit;
+  $("profit").textContent = money(profit);
+  $("profit").style.color = profit < 0 ? "#ac4966" : "#394d45";
+  $("marginLabel").textContent = num("margin") + "%";
+  $("verdict").textContent =
+    profit < 0
+      ? "This order loses money at this quote."
+      : num("quote") < suggestion
+        ? "Profitable, but below your target margin."
+        : "This quote meets your target margin. ♡";
+  $("breakdown").innerHTML = [
+    ["Ingredients", ingredients],
+    ["Packaging", pack],
+    ["Making time", labor],
+    ["Cleanup + setup", cleanup],
+    ["Rush delivery", rush],
+    ["Displaced profit", displaced],
+    ["Total true cost", total],
+  ]
+    .map(
+      ([name, value]) =>
+        `<div class="cost-row"><span>${name}</span><b>${money(value)}</b></div>`,
+    )
+    .join("");
+  $("suggested").textContent = money(suggestion);
+}
+document
+  .querySelectorAll("#cost input")
+  .forEach((e) => e.addEventListener("input", cost));
+$("useQuote").addEventListener("click", () => {
+  $("quote").value = (Math.ceil(suggestion * 100) / 100).toFixed(2);
+  cost();
+  setOrderState(
+    "RE-QUOTED",
+    `Your quote of ${money(num("quote"))} is ready for the customer. This demo does not send messages.`,
+  );
+});
+cost();
+const customers = [
+  {
+    name: "Poppy · a birthday surprise",
+    speech:
+      "“24 strawberry cupcakes, please! Tomorrow at 11. My budget is $120.”",
+    product: "🍓 Strawberry cupcakes",
+    recipe: "strawberry",
+    deadline: "Tomorrow · 11:00 AM",
+    values: {
+      qty: 24,
+      quote: 120,
+      ingredient: 1.3,
+      packaging: 0.4,
+      prep: 42,
+      cleanup: 15,
+      rush: 18,
+      displaced: 8,
+      lost: 2.5,
+    },
+  },
+  {
+    name: "Milo · a last-minute office party",
+    speech:
+      "“Can you do 48 chocolate cupcakes by 9 tomorrow? I can offer $180!”",
+    product: "🍫 Chocolate cupcakes",
+    recipe: "chocolate",
+    deadline: "Tomorrow · 9:00 AM",
+    values: {
+      qty: 48,
+      quote: 180,
+      ingredient: 1.6,
+      packaging: 0.5,
+      prep: 90,
+      cleanup: 25,
+      rush: 25,
+      displaced: 20,
+      lost: 2.5,
+    },
+  },
+  {
+    name: "June · a cozy weekend picnic",
+    speech: "“12 lemon cupcakes for Saturday, please. Is $72 enough? No rush!”",
+    product: "🍋 Lemon cupcakes",
+    recipe: "lemon",
+    deadline: "Saturday · 12:00 PM",
+    values: {
+      qty: 12,
+      quote: 72,
+      ingredient: 1.1,
+      packaging: 0.35,
+      prep: 25,
+      cleanup: 10,
+      rush: 0,
+      displaced: 0,
+      lost: 2.5,
+    },
+  },
+];
+let customerIndex = 0,
+  ticketCount = 1;
+function setOrderState(state, message) {
+  $("ticketStatus").textContent = state;
+  $("orderResponse").textContent = message;
+}
+function ticketSummary() {
+  $("ticketSummary").textContent =
+    `${num("qty")} cupcakes · offered ${money(num("quote"))}`;
+}
+$("nextCustomer").addEventListener("click", () => {
+  customerIndex = (customerIndex + 1) % customers.length;
+  ticketCount++;
+  const c = customers[customerIndex];
+  for (const [id, value] of Object.entries(c.values)) $(id).value = value;
+  $("customerName").textContent = c.name;
+  $("customerSpeech").textContent = c.speech;
+  $("ticketProduct").textContent = c.product;
+  $("ticketDeadline").textContent = c.deadline;
+  $("ticketNumber").textContent = "#" + String(ticketCount).padStart(3, "0");
+  setOrderState("NEW REQUEST", "Check the true cost before you say yes.");
+  cost();
+  ticketSummary();
+  const scene = document.querySelector(".customer-scene");
+  scene.classList.remove("customer-arrival");
+  void scene.offsetWidth;
+  scene.classList.add("customer-arrival");
+});
+$("acceptOrder").addEventListener("click", () =>
+  setOrderState(
+    "ACCEPTED",
+    `Order accepted at ${money(num("quote"))}. ${num("quote") < suggestion ? "This is below your target margin." : "Your target margin is covered."}`,
+  ),
+);
+$("declineOrder").addEventListener("click", () =>
+  setOrderState(
+    "PASSED",
+    "You passed on this request. Another customer will be along soon.",
+  ),
+);
+document.querySelectorAll("#cost input").forEach((e) =>
+  e.addEventListener("input", () => {
+    ticketSummary();
+    setOrderState(
+      "EDITING",
+      "Quote updated. Review the costs before you decide.",
+    );
+  }),
+);
+$("useQuote").addEventListener("click", ticketSummary);
+let challengeStarted = false;
+function showView(id) {
+  document
+    .querySelectorAll(".tab")
+    .forEach(
+      (t) => (
+        t.classList.toggle("active", t.dataset.view === id),
+        t.setAttribute("aria-pressed", String(t.dataset.view === id))
+      ),
+    );
+  document.querySelectorAll(".view").forEach((v) => (v.hidden = v.id !== id));
+}
+function modelOrder(shortRoute, later) {
+  const travel = (48 * stepSeconds(shortRoute)) / 60,
+    time = 90 + travel + 25,
+    capacity = later ? 160 : 100,
+    displaced = time > capacity ? 50 : 0,
+    rush = later ? 0 : 25,
+    total =
+      76.8 + 24 + ((90 + travel + 25) / 60) * num("wage") + rush + displaced;
+  return {
+    travel,
+    time,
+    capacity,
+    displaced,
+    rush,
+    total,
+    profit: 180 - total,
+  };
+}
+function updateChallenge() {
+  if (!challengeStarted) return;
+  const smart = $("smartLayout").checked,
+    later = $("laterPickup").checked,
+    before = modelOrder(false, false),
+    after = modelOrder(smart, later);
+  if (optimized !== smart) $("optimize").click();
+  $("linkWorkflow").checked = true;
+  for (const [id, value] of Object.entries(customers[1].values))
+    $(id).value = value;
+  $("orderWage").value = num("wage");
+  $("rush").value = after.rush;
+  $("displaced").value = after.displaced ? 20 : 0;
+  cost();
+  ticketSummary();
+  $("customerName").textContent = customers[1].name;
+  $("customerSpeech").textContent = customers[1].speech;
+  $("ticketProduct").textContent = customers[1].product;
+  $("ticketDeadline").textContent = later
+    ? "Tomorrow · 10:00 AM (proposed)"
+    : "Tomorrow · 9:00 AM";
+  setOrderState(
+    "PLAN PREVIEW",
+    later
+      ? "Later pickup is proposed, not confirmed by the customer."
+      : "Review this rush order before accepting.",
+  );
+  $("capacityText").textContent = after.capacity + " minutes";
+  $("timeFill").style.width =
+    Math.min(100, (after.time / after.capacity) * 100) + "%";
+  $("timeFill").style.background =
+    after.time > after.capacity ? "#cc7890" : "#8db68d";
+  $("scheduleStatus").textContent =
+    `${after.time.toFixed(1)} min needed · ${after.time > after.capacity ? (after.time - after.capacity).toFixed(1) + " min over the available slot" : (after.capacity - after.time).toFixed(1) + " min left for Grandma to breathe"}`;
+  $("baselineProfit").textContent = money(before.profit);
+  $("scenarioProfit").textContent = money(after.profit);
+  $("scenarioProfit").style.color = after.profit < 0 ? "#a54f70" : "#3d7550";
+  const saved = before.time - after.time;
+  $("receiptRows").innerHTML = [
+    ["Time freed", saved.toFixed(1) + " min"],
+    ["Labor value freed", money((saved / 60) * num("wage"))],
+    ["Rush fee avoided", money(before.rush - after.rush)],
+    [
+      "Regular-order profit protected",
+      money(before.displaced - after.displaced),
+    ],
+    ["Profit improvement", money(after.profit - before.profit)],
+  ]
+    .map(([k, v]) => `<div class="cost-row"><span>${k}</span><b>${v}</b></div>`)
+    .join("");
+  $("humanResult").textContent =
+    saved > 0
+      ? `${saved.toFixed(1)} fewer minutes running between stations. More room for the part only Grandma can do.`
+      : "Small changes can make room for Grandma’s regulars, her craft, and herself.";
+}
+$("startChallenge").addEventListener("click", () => {
+  challengeStarted = true;
+  $("smartLayout").checked = false;
+  $("laterPickup").checked = false;
+  $("challengeArea").hidden = false;
+  $("receipt").hidden = false;
+  $("receiptEmpty").hidden = true;
+  updateChallenge();
+  $("startChallenge").textContent = "↺ Restart the rush-order demo";
+});
+["smartLayout", "laterPickup"].forEach((id) =>
+  $(id).addEventListener("change", updateChallenge),
+);
+$("replayImpact").addEventListener("click", () => {
+  showView("movement");
+  $("play").click();
+});
+$("reviewImpact").addEventListener("click", () => showView("cost"));
+$("printReceipt").addEventListener("click", () => window.print());
