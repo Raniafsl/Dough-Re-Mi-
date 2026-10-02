@@ -59,8 +59,12 @@ function ringTheBell() {
   ding();
   wobble($("bellIcon"));
   wobble($("bellCard"));
-  $("ringStatus").textContent =
-    "Ding! Sent to Instagram, #campus-eats on Discord and 214 text subscribers.";
+  const m = Hub.mode();
+  $("ringStatus").textContent = m.discord
+    ? `Ding! Posted in #${m.channel || "campus-eats"} on Discord. Instagram and text are previews in this build.`
+    : m.live
+      ? "Ding! Saved on the server, but Discord isn’t connected yet."
+      : "Ding! Demo mode: student replies are simulated.";
   $("ringBtn").disabled = true;
   setTimeout(() => {
     $("bellDialog").close();

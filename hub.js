@@ -3,9 +3,10 @@
 // Countertop (part 1), the bell (part 2) and the Discord bot (part 4) only
 // talk to the hub through the contract below; see CONTRACT.md.
 //
-//   Hub.plan()                  → { items: [{ emoji, name, qty, note }], reason }
-//   Hub.planned()               → true once Grandma tapped "Sounds good"
-//   Hub.confirmPlan()
+//   Hub.plan()                  → suggested { reason, items: [{ id, emoji, name, qty, step, when, why }], agenda }
+//   Hub.finalPlan()             → null, or { at, items: [{ id, emoji, name, qty, when }] }
+//   Hub.finalisePlan(items)     → saves Grandma's accepted plan
+//   Hub.mode()                  → { live, discord, channel }; Hub.onMode(fn) when it changes
 //   Hub.rewrite(kind, sentence) → { insta, discord, sms, read }  (kind: treats | special | event | poll)
 //   Hub.ring({ kind, text })    → ring   (sends everywhere; claims arrive later)
 //   Hub.onClaim(fn)             → fn(claim, ring) for every claim from any channel
@@ -13,9 +14,9 @@
 //   Hub.summary()               → { tonight, week, claims, rescued, seats, votes, byChannel, sold, rings, goal }
 //   Hub.newDay()
 //
-// This file is the STUB hub: everything lives in the browser and student
-// replies are simulated. The live hub keeps these exact calls but sends
-// rings to the server and receives claims from it (CONTRACT.md, "Live mode").
+// Two modes, same calls. Served by server/server.js the hub runs LIVE: rings
+// go to the server (and on to Discord) and real claims stream back. Opened
+// any other way it runs as a STUB and simulates student replies.
 
 const Hub = (() => {
   const STATE_KEY = "countertop-v1",
@@ -26,12 +27,63 @@ const Hub = (() => {
   // Season, weather, campus calendar and yesterday's sales are folded into
   // one plan and one plain-English reason. Hardcoded for the demo.
   const todaysPlan = {
-    items: [
-      { emoji: "🍁", name: "Maple Cookies", qty: 30, note: "2½ dozen" },
-      { emoji: "🍂", name: "Fall Parfaits", qty: 12, note: "1 dozen" },
-      { emoji: "🧁", name: "Chocolate Cupcakes", qty: 18, note: "1½ dozen" },
-    ],
     reason: "It’s midterms week, and the cookies sold out by 2 PM yesterday.",
+    items: [
+      {
+        id: "cookies",
+        emoji: "🍁",
+        name: "Maple Cookies",
+        qty: 30,
+        step: 6,
+        when: "7:00 AM",
+        why: "Sold out by 2 PM yesterday, so 6 more than usual",
+      },
+      {
+        id: "parfaits",
+        emoji: "🍂",
+        name: "Fall Parfaits",
+        qty: 12,
+        step: 2,
+        when: "9:30 AM",
+        why: "Layer them before the lunch rush",
+      },
+      {
+        id: "choc",
+        emoji: "🧁",
+        name: "Chocolate Cupcakes",
+        qty: 18,
+        step: 6,
+        when: "11:00 AM",
+        why: "The study crowd’s favourite this week",
+      },
+      {
+        id: "lemon",
+        emoji: "🍋",
+        name: "Lemon Cupcakes",
+        qty: 6,
+        step: 6,
+        when: "1:00 PM",
+        why: "Only 3 sold yesterday, so a small batch",
+      },
+    ],
+    agenda: [
+      {
+        when: "2:30 PM",
+        emoji: "🔔",
+        text: "Ring the bell for Student Fridays",
+      },
+      {
+        when: "3:00 PM",
+        emoji: "🎓",
+        text: "Student Fridays: 15% off with a student card",
+      },
+      {
+        when: "6:00 PM",
+        emoji: "☕",
+        text: "Finals study hall: tea refills on Grandma",
+      },
+      { when: "8:30 PM", emoji: "🍪", text: "Ring the bell for any leftovers" },
+    ],
   };
 
   // ── Rewriting: one sentence in, three channel-shaped messages out ────
@@ -179,7 +231,7 @@ const Hub = (() => {
     // A lunchtime ring already poured a few layers, so the glass isn't empty.
     return {
       day: todayKey,
-      planned: false,
+      finalPlan: null,
       rings: [
         {
           id: "lunch",
@@ -289,10 +341,43 @@ const Hub = (() => {
     }, gap);
   }
 
+  // ── Live mode: the server relays rings to Discord and claims back ─────
+  let mode = { live: false, discord: false, channel: null };
+  const modeListeners = [];
+
+  function goLive(health) {
+    mode = {
+      live: true,
+      discord: !!health.discord,
+      channel: health.channel || null,
+    };
+    modeListeners.forEach((fn) => fn(mode));
+    const events = new EventSource("/api/events");
+    events.addEventListener("claim", (e) => {
+      const { ringId, claim } = JSON.parse(e.data),
+        r = state.rings.find((x) => x.id === ringId);
+      if (r) addClaim(r, claim);
+    });
+    events.addEventListener("soldout", (e) => {
+      const r = state.rings.find((x) => x.id === JSON.parse(e.data).ringId);
+      if (r) doneListeners.forEach((fn) => fn(r));
+    });
+    events.addEventListener("status", (e) => {
+      const h = JSON.parse(e.data);
+      mode = { live: true, discord: !!h.discord, channel: h.channel || null };
+      modeListeners.forEach((fn) => fn(mode));
+    });
+  }
+  if (location.protocol.startsWith("http"))
+    fetch("/api/health")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((h) => h?.ok && goLive(h))
+      .catch(() => {});
+
   function ring({ kind, text }) {
     const m = rewrite(kind, text),
       r = {
-        id: String(Date.now()),
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         kind,
         text: m.text,
         time: new Date().toLocaleTimeString("en-US", {
@@ -303,7 +388,30 @@ const Hub = (() => {
       };
     state.rings.push(r);
     save();
-    simulateReplies(r, m.read);
+    if (mode.live)
+      fetch("/api/rings", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          id: r.id,
+          kind,
+          text: m.text,
+          limit: kind === "treats" ? m.read.count || null : null,
+          amount:
+            kind === "treats"
+              ? Math.round(m.read.each * 100) / 100
+              : kind === "special"
+                ? 6.43
+                : 0,
+          item: kind === "special" ? "Student Friday order" : m.read.item,
+          options:
+            kind === "poll" && m.read.options.length > 1
+              ? m.read.options
+              : null,
+          discord: m.discord,
+        }),
+      }).catch(() => {});
+    else simulateReplies(r, m.read);
     return r;
   }
 
@@ -340,11 +448,25 @@ const Hub = (() => {
   return {
     kinds,
     plan: () => todaysPlan,
-    planned: () => state.planned,
-    confirmPlan() {
-      state.planned = true;
+    finalPlan: () => state.finalPlan,
+    finalisePlan(items) {
+      state.finalPlan = {
+        at: new Date().toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+        }),
+        items: items.map(({ id, emoji, name, qty, when }) => ({
+          id,
+          emoji,
+          name,
+          qty,
+          when,
+        })),
+      };
       save();
     },
+    mode: () => mode,
+    onMode: (fn) => modeListeners.push(fn),
     rewrite,
     ring,
     onClaim: (fn) => claimListeners.push(fn),

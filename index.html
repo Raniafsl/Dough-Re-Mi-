@@ -33,6 +33,7 @@
         <div class="today">
           <span id="todayDate"></span>
           <span class="chip">📚 Midterms week</span>
+          <span class="chip mode" id="modeChip">Demo mode</span>
         </div>
       </header>
 
@@ -57,36 +58,20 @@
           <!-- 1 · Recipe card -->
           <div class="hang" style="--tilt: -2.5deg; --delay: 0s">
             <span class="peg" aria-hidden="true"></span>
-            <div class="recipe" id="recipe">
-              <div class="recipe-inner">
-                <button
-                  class="face front recipe-front"
-                  id="recipeFront"
-                  aria-label="Recipe card: tap to see today's plan"
-                >
-                  <span class="card-step">1 · PLAN</span>
-                  <span class="emoji" aria-hidden="true">📜</span>
-                  <span class="hand big-hand">Today’s bake</span>
-                  <span class="front-note" id="recipeNote"
-                    >Tap to see what to make</span
-                  >
-                  <span class="stamp" id="planStamp" hidden>✓ Planned</span>
-                </button>
-                <div
-                  class="face back recipe-back"
-                  id="recipeBack"
-                  aria-hidden="true"
-                >
-                  <span class="card-step">TODAY</span>
-                  <ul class="plan" id="planList"></ul>
-                  <p class="reason" id="planReason"></p>
-                  <button class="big-btn" id="soundsGood">
-                    Sounds good 👍
-                  </button>
-                  <button class="link-btn" id="flipBack">Flip back</button>
-                </div>
-              </div>
-            </div>
+            <button
+              class="face hang-card recipe-card"
+              id="recipeCard"
+              aria-haspopup="dialog"
+            >
+              <span class="card-step">1 · PLAN</span>
+              <span class="stamp" id="planStamp" hidden>✓ Final</span>
+              <span class="emoji" id="recipeEmoji" aria-hidden="true">📜</span>
+              <span class="hand big-hand" id="recipeHeading">Today’s bake</span>
+              <ul class="card-plan" id="cardPlan" hidden></ul>
+              <span class="front-note" id="recipeNote"
+                >Tap to see today’s plan</span
+              >
+            </button>
           </div>
 
           <!-- 2 · Shop bell -->
@@ -272,6 +257,34 @@
         <a href="studio.html">Behind the counter: the full back office →</a>
       </footer>
     </div>
+
+    <!-- Today's plan -->
+    <dialog class="sheet" id="planDialog" aria-labelledby="planTitle">
+      <form method="dialog" class="sheet-close">
+        <button aria-label="Close">×</button>
+      </form>
+      <h2 id="planTitle">📜 Today’s bake</h2>
+      <p class="plan-reason" id="planReason"></p>
+      <div class="plan-grid">
+        <section aria-labelledby="bakeHead">
+          <h3 id="bakeHead">What to make</h3>
+          <ul class="plan-rows" id="planRows"></ul>
+        </section>
+        <section aria-labelledby="agendaHead">
+          <h3 id="agendaHead">Today’s agenda</h3>
+          <ol class="agenda" id="agendaList"></ol>
+        </section>
+      </div>
+      <div class="plan-actions">
+        <button type="button" class="secondary-btn" id="useSuggested">
+          Use the suggestions
+        </button>
+        <button type="button" class="big-btn" id="finalisePlan">
+          Finalise today’s plan ✓
+        </button>
+        <p id="planStatus" aria-live="polite"></p>
+      </div>
+    </dialog>
 
     <!-- The shop bell -->
     <dialog class="sheet" id="bellDialog" aria-labelledby="bellTitle">

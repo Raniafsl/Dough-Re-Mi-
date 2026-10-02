@@ -35,36 +35,93 @@ function renderHeader() {
     `${h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening"}, Grandma.`;
 }
 
-// ── 1 · The recipe card ────────────────────────────────────────────────
+// ── 1 · The recipe card and the plan sheet ─────────────────────────────
+// The card shows the finalised plan once Grandma has accepted it; tapping it
+// opens the plan sheet, where she can adjust the suggestions and finalise.
+let draft = [];
+
 function renderRecipe() {
-  const plan = Hub.plan(),
-    planned = Hub.planned();
-  $("planList").innerHTML = plan.items
-    .map(
-      (i) =>
-        `<li><span class="qty">${i.qty}</span><span>${i.emoji} ${i.name}<small>${i.note}</small></span></li>`,
-    )
+  const final = Hub.finalPlan(),
+    items = final?.items.filter((i) => i.qty > 0) || [];
+  $("planStamp").hidden = !final;
+  $("recipeEmoji").hidden = !!final;
+  $("cardPlan").hidden = !final;
+  $("cardPlan").innerHTML = items
+    .map((i) => `<li><b>${i.qty}</b> ${i.name}</li>`)
     .join("");
-  $("planReason").textContent = plan.reason;
-  $("planStamp").hidden = !planned;
-  $("recipeNote").textContent = planned
-    ? plan.items
-        .map((i) => `${i.qty} ${i.name.split(" ").pop().toLowerCase()}`)
-        .join(" · ")
-    : "Tap to see what to make";
-  $("soundsGood").textContent = planned ? "Planned ✓" : "Sounds good 👍";
+  $("recipeNote").textContent = final
+    ? `Finalised at ${final.at} · tap to change`
+    : "Tap to see today’s plan";
 }
 
-function flipRecipe(open, focus = true) {
-  $("recipe").classList.toggle("flipped", open);
-  $("recipeFront").setAttribute("aria-hidden", String(open));
-  $("recipeBack").setAttribute("aria-hidden", String(!open));
-  $("recipeFront").tabIndex = open ? -1 : 0;
-  $("recipeBack")
-    .querySelectorAll("button")
-    .forEach((b) => (b.tabIndex = open ? 0 : -1));
-  if (focus)
-    (open ? $("soundsGood") : $("recipeFront")).focus({ preventScroll: true });
+function startDraft(fromSuggestions = false) {
+  const final = Hub.finalPlan();
+  draft = Hub.plan().items.map((s) => {
+    const kept = !fromSuggestions && final?.items.find((f) => f.id === s.id);
+    return { ...s, suggested: s.qty, qty: kept ? kept.qty : s.qty };
+  });
+}
+
+function renderPlanSheet() {
+  const plan = Hub.plan(),
+    final = Hub.finalPlan();
+  $("planReason").textContent = plan.reason;
+  const rows = $("planRows");
+  rows.replaceChildren();
+  draft.forEach((d, i) => {
+    const li = document.createElement("li");
+    li.className = "plan-row" + (d.qty === 0 ? " skipped" : "");
+    li.innerHTML = `
+      <span class="plan-emoji" aria-hidden="true">${d.emoji}</span>
+      <span class="plan-what"><b>${d.name}</b><small>${d.when} · ${d.why}</small>
+        ${d.qty !== d.suggested ? `<em>suggested ${d.suggested}</em>` : ""}</span>
+      <span class="stepper" role="group" aria-label="${d.name}">
+        <button type="button" data-i="${i}" data-step="-1" aria-label="Fewer ${d.name}">−</button>
+        <output aria-live="polite">${d.qty}</output>
+        <button type="button" data-i="${i}" data-step="1" aria-label="More ${d.name}">+</button>
+      </span>
+      <button type="button" class="skip" data-i="${i}" data-skip aria-pressed="${d.qty === 0}">${d.qty === 0 ? "Add back" : "Skip"}</button>`;
+    rows.append(li);
+  });
+  const baking = draft
+      .filter((d) => d.qty > 0)
+      .map((d) => ({
+        when: d.when,
+        emoji: d.emoji,
+        text: `Bake ${d.qty} ${d.name}`,
+      })),
+    toMinutes = (t) => {
+      const [, h, m, ap] = t.match(/(\d+):(\d+) (AM|PM)/);
+      return ((Number(h) % 12) + (ap === "PM" ? 12 : 0)) * 60 + Number(m);
+    };
+  $("agendaList").innerHTML = [...baking, ...plan.agenda]
+    .sort((a, b) => toMinutes(a.when) - toMinutes(b.when))
+    .map(
+      (a) =>
+        `<li><time>${a.when}</time><span aria-hidden="true">${a.emoji}</span><span>${a.text}</span></li>`,
+    )
+    .join("");
+  $("finalisePlan").textContent = final
+    ? "Update today’s plan ✓"
+    : "Finalise today’s plan ✓";
+  $("planStatus").textContent = final ? `Finalised at ${final.at}.` : "";
+}
+
+function openPlan() {
+  startDraft();
+  renderPlanSheet();
+  $("planDialog").showModal();
+  $("finalisePlan").focus();
+}
+
+function renderMode(m) {
+  const chip = $("modeChip");
+  chip.classList.toggle("live", m.live && m.discord);
+  chip.textContent = m.live
+    ? m.discord
+      ? `● Live on Discord${m.channel ? ` #${m.channel}` : ""}`
+      : "● Server on · Discord not connected"
+    : "Demo mode · replies simulated";
 }
 
 // ── 3 · The parfait (its data comes from the hub) ──────────────────────
@@ -201,13 +258,31 @@ Hub.onRingDone((ring) => {
 });
 
 // ── Wiring ─────────────────────────────────────────────────────────────
-$("recipeFront").addEventListener("click", () => flipRecipe(true));
-$("flipBack").addEventListener("click", () => flipRecipe(false));
-$("soundsGood").addEventListener("click", () => {
-  Hub.confirmPlan();
+$("recipeCard").addEventListener("click", openPlan);
+$("planRows").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-i]");
+  if (!b) return;
+  const d = draft[Number(b.dataset.i)];
+  if ("skip" in b.dataset) d.qty = d.qty === 0 ? d.suggested : 0;
+  else d.qty = Math.max(0, d.qty + Number(b.dataset.step) * d.step);
+  renderPlanSheet();
+  const again = $("planRows").querySelector(
+    `button[data-i="${b.dataset.i}"]${"skip" in b.dataset ? "[data-skip]" : `[data-step="${b.dataset.step}"]`}`,
+  );
+  again?.focus();
+});
+$("useSuggested").addEventListener("click", () => {
+  startDraft(true);
+  renderPlanSheet();
+  $("planStatus").textContent = "Back to Grandma’s suggestions.";
+});
+$("finalisePlan").addEventListener("click", () => {
+  Hub.finalisePlan(draft);
   renderRecipe();
-  toast("📜 Today’s plan is set. Happy baking!");
-  setTimeout(() => flipRecipe(false), 700);
+  renderPlanSheet();
+  wobble($("recipeCard"));
+  toast("📜 Today’s plan is final. Happy baking!");
+  setTimeout(() => $("planDialog").close(), 900);
 });
 $("parfaitCard").addEventListener("click", () => {
   renderParfaitSheet();
@@ -224,8 +299,9 @@ for (const d of document.querySelectorAll("dialog.sheet"))
   d.addEventListener("click", (e) => {
     if (e.target === d) d.close();
   });
+Hub.onMode(renderMode);
 
 renderHeader();
 renderRecipe();
 renderParfait();
-flipRecipe(false, false);
+renderMode(Hub.mode());
