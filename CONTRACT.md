@@ -1,17 +1,17 @@
 # Countertop: who owns what, and how the parts talk
 
-The demo, in about 60 seconds: Grandma opens Countertop and flips the recipe card ("midterms week, bake extra cookies"). Later she holds the bell and says "six parfaits left, half price." The judges' phones ping in Discord, they claim, and the jar keeps filling on the big screen.
+The demo, in about 60 seconds: Grandma opens Countertop and flips the recipe card ("midterms week, bake extra cookies"). Later she holds the bell and says "six parfaits left, half price." The judges' phones ping in Discord, they claim, and the parfait keeps building on the big screen.
 
 Every part talks to the others only through the **hub** (`hub.js`). Each part can be built and demoed on its own because the hub ships as a working stub.
 
 ## The four parts
 
-| Part                                | Owner | Files                                           | Done when                                                                   |
-| ----------------------------------- | ----- | ----------------------------------------------- | --------------------------------------------------------------------------- |
-| 1 · Countertop home and recipe card |       | `index.html`, `countertop.js`, `countertop.css` | The card flips, "Sounds good" stamps the plan, the jar fills on every claim |
-| 2 · Bell flow                       |       | `bell.js` (+ the bell sheet in `index.html`)    | Voice or typing, four picture buttons, three live previews, ding            |
-| 3 · Hub                             |       | `hub.js`, later `server/`                       | Plan data, AI rewrite, rings out, claims in, totals                         |
-| 4 · Discord bot and the pitch       |       | `bot/`, the slides                              | Judges get a ping with a Claim button and the claim reaches the hub         |
+| Part                                | Owner | Files                                           | Done when                                                                               |
+| ----------------------------------- | ----- | ----------------------------------------------- | --------------------------------------------------------------------------------------- |
+| 1 · Countertop home and recipe card |       | `index.html`, `countertop.js`, `countertop.css` | The card flips, "Sounds good" stamps the plan, the parfait gains a layer on every claim |
+| 2 · Bell flow                       |       | `bell.js` (+ the bell sheet in `index.html`)    | Voice or typing, four picture buttons, three live previews, ding                        |
+| 3 · Hub                             |       | `hub.js`, later `server/`                       | Plan data, AI rewrite, rings out, claims in, totals                                     |
+| 4 · Discord bot and the pitch       |       | `bot/`, the slides                              | Judges get a ping with a Claim button and the claim reaches the hub                     |
 
 ## The hub, in the browser (`Hub.*`)
 
@@ -24,7 +24,7 @@ Every part talks to the others only through the **hub** (`hub.js`). Each part ca
 | `Hub.ring({ kind, text })`            | `ring` `{ id, kind, text, time, claims: [] }`                                           | Sends to every channel                                            |
 | `Hub.onClaim(fn)`                     | –                                                                                       | `fn(claim, ring)` for every claim from any channel                |
 | `Hub.onRingDone(fn)`                  | –                                                                                       | `fn(ring)` when replies settle (stub only; live mode can skip it) |
-| `Hub.summary()`                       | `{ goal, tonight, week, claims, rescued, seats, votes, byChannel, sold, rings }`        | Feeds the jar                                                     |
+| `Hub.summary()`                       | `{ goal, tonight, week, claims, rescued, seats, votes, byChannel, sold, rings }`        | Feeds the parfait                                                 |
 | `Hub.newDay()`                        | –                                                                                       | Demo reset                                                        |
 
 A **claim** is `{ name, channel: "discord" | "text" | "instagram", amount, item, rescued, choice? }`. `choice` is set only for poll votes.
@@ -57,7 +57,7 @@ Bot and server secrets (`DISCORD_TOKEN`, `CHANNEL_ID`) live in environment varia
 
 ## Demo checklist
 
-1. Clear the browser data (or tap **Start a fresh day** in the jar), so the jar starts at the lunch ring.
+1. Clear the browser data (or tap **Start a fresh day** in the parfait sheet), so the glass starts at the lunch ring.
 2. Flip the recipe card → **Sounds good 👍**.
 3. Tap the bell → 🍪 **Treats** → 🎙️ "six parfaits left, half price" → **Ring the bell**.
-4. Judges claim in Discord, the jar fills, then tap the jar for tonight's totals.
+4. Judges claim in Discord, the parfait builds, then tap it for tonight's totals.

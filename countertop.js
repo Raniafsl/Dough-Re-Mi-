@@ -1,4 +1,4 @@
-// PART 1 · Countertop home screen: the recipe card and the jar.
+// PART 1 · Countertop home screen: the recipe card and the parfait.
 // Reads everything from the hub (hub.js); the bell lives in bell.js.
 
 const $ = (id) => document.getElementById(id),
@@ -67,32 +67,62 @@ function flipRecipe(open, focus = true) {
     (open ? $("soundsGood") : $("recipeFront")).focus({ preventScroll: true });
 }
 
-// ── 3 · The jar (its data comes from the hub) ──────────────────────────
-// Coins settle in a pile from the bottom of the jar; cookies sit among them.
-const coinSpot = (i) => {
-  const row = Math.floor(i / 6),
-    col = i % 6;
-  return { x: 52 + col * 19 + (row % 2) * 9, y: 190 - row * 9 };
-};
-function renderJar(newCoins = 0) {
+// ── 3 · The parfait (its data comes from the hub) ──────────────────────
+// Each ring pours one layer, and every paid claim from that ring makes it
+// thicker. Yogurt separates the rings; the glass is full at tonight's goal.
+const GLASS_BOTTOM = 194,
+  GLASS_TOP = 32,
+  YOGURT = 5,
+  layerFor = (item) =>
+    /cookie/i.test(item)
+      ? { fill: "#c48a4a", fleck: "#8a5a2b" } // granola crumble
+      : /parfait/i.test(item)
+        ? { fill: "#e28a45", fleck: "#c2662a" } // pumpkin-maple cream
+        : /cupcake/i.test(item)
+          ? { fill: "#8b5a2b", fleck: "#5e3b1a" } // chocolate
+          : { fill: "#e9b4c7", fleck: "#c46a88" }; // berries
+
+function renderParfait(newClaims = 0) {
   const s = Hub.summary(),
-    coins = Math.min(84, Math.round((s.tonight / s.goal) * 84));
-  let svg = "";
-  for (let i = 0; i < coins; i++) {
-    const { x, y } = coinSpot(i),
-      fresh = i >= coins - newCoins ? "drop" : "";
-    svg +=
-      i % 7 === 3
-        ? `<g class="${fresh}"><circle cx="${x}" cy="${y}" r="9" fill="#c48a4a" stroke="#8a5a2b" stroke-width="1.5"/><circle cx="${x - 3}" cy="${y - 2}" r="1.6" fill="#4f2a12"/><circle cx="${x + 3}" cy="${y + 2}" r="1.6" fill="#4f2a12"/></g>`
-        : `<g class="${fresh}"><ellipse cx="${x}" cy="${y}" rx="9" ry="5" fill="#e3b04b" stroke="#9c6f1e" stroke-width="1.5"/></g>`;
-  }
-  $("jarCoins").innerHTML = svg;
-  $("jarTonight").textContent = `${money(s.tonight)} tonight`;
-  $("jarNote").textContent =
-    `${s.claims} claim${s.claims === 1 ? "" : "s"} · ${Math.min(100, Math.round((s.tonight / s.goal) * 100))}% full`;
+    perDollar = (GLASS_BOTTOM - GLASS_TOP - YOGURT * 3) / s.goal,
+    rings = s.rings.filter((r) => r.claims.some((c) => c.amount > 0));
+  let y = GLASS_BOTTOM,
+    svg = "";
+  rings.forEach((r, i) => {
+    const paid = r.claims.filter((c) => c.amount > 0),
+      { fill, fleck } = layerFor(paid[0].item),
+      latest = i === rings.length - 1 && newClaims > 0,
+      fresh = latest
+        ? paid.slice(-newClaims).reduce((t, c) => t + c.amount, 0) * perDollar
+        : 0,
+      h = Math.min(
+        y - GLASS_TOP,
+        paid.reduce((t, c) => t + c.amount, 0) * perDollar,
+      );
+    if (h <= 0) return;
+    if (i > 0 && y - YOGURT > GLASS_TOP) {
+      y -= YOGURT;
+      svg += `<rect x="30" y="${y}" width="140" height="${YOGURT + 0.5}" fill="#fbf0dd"/>`;
+    }
+    y -= h;
+    svg += `<rect x="30" y="${y}" width="140" height="${h - Math.min(fresh, h) + 0.5}" transform="translate(0 ${Math.min(fresh, h)})" fill="${fill}"/>`;
+    if (fresh)
+      svg += `<rect class="pour" x="30" y="${y}" width="140" height="${Math.min(fresh, h) + 0.5}" fill="${fill}"/>`;
+    for (let k = 0; k < Math.min(14, Math.floor(h / 4) * 3); k++)
+      svg += `<circle cx="${44 + ((k * 37) % 112)}" cy="${y + 3 + ((k * 13) % Math.max(1, h - 6))}" r="2" fill="${fleck}" opacity=".7"/>`;
+  });
+  $("parfaitLayers").innerHTML = svg;
+  const full = s.tonight >= s.goal;
+  $("parfaitTop").innerHTML = full
+    ? `<g class="topping"><ellipse cx="100" cy="30" rx="58" ry="12" fill="#fffdf8" stroke="#b8a584" stroke-width="2.5"/><ellipse cx="100" cy="20" rx="38" ry="11" fill="#fffdf8" stroke="#b8a584" stroke-width="2.5"/><ellipse cx="100" cy="11" rx="18" ry="8" fill="#fffdf8" stroke="#b8a584" stroke-width="2.5"/><circle cx="104" cy="-2" r="7" fill="#c0392b"/><path d="M104 -8 q4 -8 10 -10" fill="none" stroke="#6d896c" stroke-width="2"/></g>`
+    : "";
+  $("parfaitTonight").textContent = `${money(s.tonight)} tonight`;
+  $("parfaitNote").textContent = full
+    ? `${s.claims} claims · topped off! 🍒`
+    : `${s.claims} claim${s.claims === 1 ? "" : "s"} · ${Math.round((s.tonight / s.goal) * 100)}% of tonight’s goal`;
 }
 
-function renderJarSheet() {
+function renderParfaitSheet() {
   const s = Hub.summary();
   $("totals").innerHTML = `
     <div class="tile hot"><span>Tonight</span><b>${money(s.tonight)}</b><small>${s.claims} claims</small></div>
@@ -153,21 +183,21 @@ Hub.onClaim((claim, ring) => {
           : `🪙 ${claim.name} claimed on ${channelName(claim.channel)}`,
     );
   if (claim.amount > 0) {
-    renderJar(1);
-    wobble($("jarCard"));
+    renderParfait(1);
+    wobble($("parfaitCard"));
   }
-  if ($("jarDialog").open) renderJarSheet();
+  if ($("parfaitDialog").open) renderParfaitSheet();
 });
 Hub.onRingDone((ring) => {
   toastsThisRing = 0;
   toast(
     ring.kind === "poll"
-      ? `🗳️ ${ring.votes?.length || 0} votes in. Tap the jar to see the result.`
+      ? `🗳️ ${ring.votes?.length || 0} votes in. Tap the parfait to see the result.`
       : ring.kind === "event"
         ? `✅ ${ring.claims.length} seats saved.`
-        : `🍪 ${ring.claims.length} claimed, ${money(ring.claims.reduce((s, c) => s + c.amount, 0))} in the jar.`,
+        : `🍪 ${ring.claims.length} claimed, ${money(ring.claims.reduce((s, c) => s + c.amount, 0))} in the parfait.`,
   );
-  renderJar();
+  renderParfait();
 });
 
 // ── Wiring ─────────────────────────────────────────────────────────────
@@ -179,15 +209,15 @@ $("soundsGood").addEventListener("click", () => {
   toast("📜 Today’s plan is set. Happy baking!");
   setTimeout(() => flipRecipe(false), 700);
 });
-$("jarCard").addEventListener("click", () => {
-  renderJarSheet();
-  $("jarDialog").showModal();
+$("parfaitCard").addEventListener("click", () => {
+  renderParfaitSheet();
+  $("parfaitDialog").showModal();
 });
 $("newDay").addEventListener("click", () => {
   Hub.newDay();
   renderRecipe();
-  renderJar();
-  renderJarSheet();
+  renderParfait();
+  renderParfaitSheet();
 });
 // Close a sheet by tapping outside it.
 for (const d of document.querySelectorAll("dialog.sheet"))
@@ -197,5 +227,5 @@ for (const d of document.querySelectorAll("dialog.sheet"))
 
 renderHeader();
 renderRecipe();
-renderJar();
+renderParfait();
 flipRecipe(false, false);

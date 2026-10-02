@@ -6,7 +6,7 @@
     <title>Countertop · Grandma’s Bakeria</title>
     <meta
       name="description"
-      content="Grandma's countertop: a recipe card that plans the day, a shop bell that tells students everywhere, and a cookie jar that fills as they claim."
+      content="Grandma's countertop: a recipe card that plans the day, a shop bell that tells students everywhere, and a parfait that builds as they claim."
     />
     <link
       rel="icon"
@@ -167,84 +167,78 @@
             </button>
           </div>
 
-          <!-- 3 · Cookie jar -->
+          <!-- 3 · The parfait -->
           <div class="hang" style="--tilt: -1deg; --delay: 1.2s">
             <span class="peg" aria-hidden="true"></span>
             <button
-              class="face hang-card jar-card"
-              id="jarCard"
+              class="face hang-card parfait-card"
+              id="parfaitCard"
               aria-haspopup="dialog"
             >
               <span class="card-step">3 · EARN</span>
               <svg
-                class="jar"
-                id="jarIcon"
-                viewBox="0 0 200 210"
+                class="parfait-glass"
+                id="parfaitIcon"
+                viewBox="0 0 200 230"
                 aria-hidden="true"
               >
                 <defs>
-                  <clipPath id="jarInside">
+                  <clipPath id="glassInside">
                     <path
-                      d="M46 62 H154 Q168 62 168 80 V182 Q168 200 150 200 H50 Q32 200 32 182 V80 Q32 62 46 62 Z"
+                      d="M34 32 H166 L144 178 Q141 194 124 194 H76 Q59 194 56 178 Z"
                     />
                   </clipPath>
                 </defs>
-                <path
-                  d="M46 62 H154 Q168 62 168 80 V182 Q168 200 150 200 H50 Q32 200 32 182 V80 Q32 62 46 62 Z"
-                  fill="#fffaf0"
-                  opacity=".9"
+                <ellipse cx="100" cy="222" rx="48" ry="7" fill="#dcc6a3" />
+                <rect
+                  x="92"
+                  y="194"
+                  width="16"
+                  height="26"
+                  rx="4"
+                  fill="#efe4d0"
+                  stroke="#b8a584"
+                  stroke-width="2"
                 />
-                <g clip-path="url(#jarInside)" id="jarCoins"></g>
                 <path
-                  d="M46 62 H154 Q168 62 168 80 V182 Q168 200 150 200 H50 Q32 200 32 182 V80 Q32 62 46 62 Z"
+                  d="M34 32 H166 L144 178 Q141 194 124 194 H76 Q59 194 56 178 Z"
+                  fill="#fffaf0"
+                />
+                <g clip-path="url(#glassInside)" id="parfaitLayers"></g>
+                <g id="parfaitTop"></g>
+                <path
+                  d="M34 32 H166 L144 178 Q141 194 124 194 H76 Q59 194 56 178 Z"
                   fill="none"
                   stroke="#9c8a73"
                   stroke-width="4"
                 />
                 <path
-                  d="M50 84 V170"
+                  d="M50 44 L66 168"
                   stroke="#fff"
                   stroke-width="7"
                   stroke-linecap="round"
-                  opacity=".7"
+                  opacity=".6"
                 />
-                <rect
-                  x="40"
-                  y="38"
-                  width="120"
-                  height="26"
-                  rx="8"
-                  fill="#c48a4a"
-                  stroke="#6b4a3a"
-                  stroke-width="3"
+                <path
+                  d="M138 20 L120 120"
+                  stroke="#b8a584"
+                  stroke-width="5"
+                  stroke-linecap="round"
                 />
-                <rect
-                  x="58"
-                  y="28"
-                  width="84"
-                  height="14"
-                  rx="6"
-                  fill="#e9b4c7"
-                  stroke="#6b4a3a"
-                  stroke-width="3"
-                />
-                <rect
-                  x="62"
-                  y="110"
-                  width="76"
-                  height="34"
-                  rx="6"
-                  fill="#fff8e8"
-                  stroke="#c9b28e"
+                <ellipse
+                  cx="139"
+                  cy="18"
+                  rx="7"
+                  ry="10"
+                  fill="#d9cbb8"
+                  stroke="#b8a584"
                   stroke-width="2"
+                  transform="rotate(12 139 18)"
                 />
-                <text x="100" y="133" text-anchor="middle" class="jar-label">
-                  TREATS
-                </text>
               </svg>
-              <span class="hand mid-hand" id="jarTonight">$0 tonight</span>
-              <span class="front-note" id="jarNote"
-                >Fills up as students claim</span
+              <span class="hand mid-hand" id="parfaitTonight">$0 tonight</span>
+              <span class="front-note" id="parfaitNote"
+                >Builds up as students claim</span
               >
             </button>
           </div>
@@ -345,14 +339,14 @@
       </div>
     </dialog>
 
-    <!-- The cookie jar -->
-    <dialog class="sheet" id="jarDialog" aria-labelledby="jarTitle">
+    <!-- The parfait sheet -->
+    <dialog class="sheet" id="parfaitDialog" aria-labelledby="parfaitTitle">
       <form method="dialog" class="sheet-close">
         <button aria-label="Close">×</button>
       </form>
-      <h2 id="jarTitle">🍪 The cookie jar</h2>
+      <h2 id="parfaitTitle">🍨 Tonight’s parfait</h2>
       <div class="totals" id="totals"></div>
-      <div class="jar-grid">
+      <div class="sheet-grid">
         <section>
           <h3>Where the claims came from</h3>
           <div id="channelBars"></div>

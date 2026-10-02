@@ -2,11 +2,11 @@
 
 **Countertop** is Grandma’s Bakeria’s home screen: no menus, no tab bar, just three cards hanging over her counter.
 
-| Card | Grandma’s problem | What it does |
-| --- | --- | --- |
-| 📜 Recipe card | She guesses what to bake, so she wastes food or runs out | Flips to today’s plan: what to bake, how many, and one plain reason |
-| 🔔 Shop bell | The Bakery can afford marketing; she can’t | One sentence becomes Instagram, Discord and text messages, sent at once |
-| 🍪 Cookie jar | She can’t see what’s working | Fills as students claim, with tonight’s and this week’s totals |
+| Card           | Grandma’s problem                                        | What it does                                                            |
+| -------------- | -------------------------------------------------------- | ----------------------------------------------------------------------- |
+| 📜 Recipe card | She guesses what to bake, so she wastes food or runs out | Flips to today’s plan: what to bake, how many, and one plain reason     |
+| 🔔 Shop bell   | The Bakery can afford marketing; she can’t               | One sentence becomes Instagram, Discord and text messages, sent at once |
+| 🍨 Parfait     | She can’t see what’s working                             | Builds a layer for every claim, with tonight’s and this week’s totals   |
 
 **Plan, Ring, Earn.** Students never download anything: they get the message where they already are and claim it there.
 
@@ -30,14 +30,14 @@ A buildathon prompt: Grandma's Bakeria is a neighbourhood favourite for studying
 - **Events & deals:** weekly specials that bring people in (Student Fridays at 15% off, Finals Study Hall with free refills, Two-Spoon Thursdays). Customers sign up with a first name and party size, and a copyable promo post is ready for Instagram or the window. Grandma's side forecasts the crowd from past show-up and walk-in rates, lists what to bake ahead (checking cupcake ingredients against the pantry), charts past turnout and best sellers, and checks whether the deal pays. Baking to the forecast instead of the busiest night adds a line to the ledger.
 - **Save Grandma’s day:** the rush-order scenario and its savings receipt.
 - **The new Fall Parfait:**
-  - *Regulars' vote*: neighbours pick which of three candidate recipes becomes the new Fall Parfait.
-  - *Fill the cup*: each system's savings becomes a layer of the new parfait; neighbours' gifts add the topping.
+  - _Regulars' vote_: neighbours pick which of three candidate recipes becomes the new Fall Parfait.
+  - _Fill the cup_: each system's savings becomes a layer of the new parfait; neighbours' gifts add the topping.
 - **Café scene:** an illustrated evening outside the bakery above the footer on every tab: a student studying, a first date sharing one Fall Parfait, friends at a reunion, Grandma at the door and a napping cat.
 - **Kind words:** testimonials from the study crowd, first dates and reunions, and a comparison with The Bakery next door.
 
 ## Two-minute demo
 
-1. *The Bakery opened next door.* Show the floor plan and run a sensor day: Grandma's steps become minutes and dollars.
+1. _The Bakery opened next door._ Show the floor plan and run a sensor day: Grandma's steps become minutes and dollars.
 2. At the order counter, re-quote Poppy and pass on Milo's money-losing order; watch the ledger change.
 3. Rescue the rush order in **Save Grandma’s day**.
 4. Open **See the math**, then press **Fund the new Fall Parfait →**.
@@ -55,26 +55,26 @@ Open http://localhost:8000. Stop the server with Ctrl+C.
 
 ## Files
 
-| File | Purpose |
-| --- | --- |
-| `index.html` | Countertop: recipe card, shop bell, cookie jar |
-| `hub.js` | Part 3 · the hub: plan data, rewriting, rings and claims (stub) |
-| `countertop.js` / `countertop.css` | Part 1 · home screen, recipe card and jar |
-| `bell.js` | Part 2 · the bell: voice, four buttons, three previews |
-| `cafe-scene.css` | Styles for the illustrated footer |
-| `studio.html` | Back office: workspaces, kitchen map and order counter |
-| `style.css` | Theme, responsive layout and print styling |
-| `app.js` | Tabs, customer flow and financial calculations |
-| `bakery-map.js` | Floor plan, simulated motion sensors and route optimizer |
-| `pantry.js` | Inventory, order completion and spending trends |
-| `parfait.js` | Fill the cup from savings and gifts |
-| `events.js` | Events & deals: promos, sign-ups, forecast and prep list |
-| `ledger.js` | Savings ledger, receipt and order wins |
-| `vote.js` | Regulars' vote on the new Fall Parfait |
-| `testimonials.js` | Testimonials, ratings comparison and kind-word form |
-| `cafe-scene.js` | Illustrated café scene above the footer |
-| `grandma-v2.png` | AI-generated Grandma character |
-| `bakery-reference.jpeg` | User-supplied storefront reference illustration |
+| File                               | Purpose                                                         |
+| ---------------------------------- | --------------------------------------------------------------- |
+| `index.html`                       | Countertop: recipe card, shop bell, parfait                     |
+| `hub.js`                           | Part 3 · the hub: plan data, rewriting, rings and claims (stub) |
+| `countertop.js` / `countertop.css` | Part 1 · home screen, recipe card and parfait                   |
+| `bell.js`                          | Part 2 · the bell: voice, four buttons, three previews          |
+| `cafe-scene.css`                   | Styles for the illustrated footer                               |
+| `studio.html`                      | Back office: workspaces, kitchen map and order counter          |
+| `style.css`                        | Theme, responsive layout and print styling                      |
+| `app.js`                           | Tabs, customer flow and financial calculations                  |
+| `bakery-map.js`                    | Floor plan, simulated motion sensors and route optimizer        |
+| `pantry.js`                        | Inventory, order completion and spending trends                 |
+| `parfait.js`                       | Fill the cup from savings and gifts                             |
+| `events.js`                        | Events & deals: promos, sign-ups, forecast and prep list        |
+| `ledger.js`                        | Savings ledger, receipt and order wins                          |
+| `vote.js`                          | Regulars' vote on the new Fall Parfait                          |
+| `testimonials.js`                  | Testimonials, ratings comparison and kind-word form             |
+| `cafe-scene.js`                    | Illustrated café scene above the footer                         |
+| `grandma-v2.png`                   | AI-generated Grandma character                                  |
+| `bakery-reference.jpeg`            | User-supplied storefront reference illustration                 |
 
 ## A quick demo
 

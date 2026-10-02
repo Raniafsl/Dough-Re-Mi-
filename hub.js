@@ -19,7 +19,7 @@
 
 const Hub = (() => {
   const STATE_KEY = "countertop-v1",
-    GOAL = 150, // dollars that fill the jar on a good evening
+    GOAL = 150, // dollars that fill the parfait on a good evening
     todayKey = new Date().toDateString();
 
   // ── Plan data ─────────────────────────────────────────────────────────
@@ -176,7 +176,7 @@ const Hub = (() => {
   const weekBefore = [64, 88, 71, 96, 83, 58]; // earlier days this week, demo history
 
   function seededDay() {
-    // A lunchtime ring already brought a few coins in, so the jar isn't empty.
+    // A lunchtime ring already poured a few layers, so the glass isn't empty.
     return {
       day: todayKey,
       planned: false,
