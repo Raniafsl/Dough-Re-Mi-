@@ -1,8 +1,22 @@
 # Dough-Re-Mi
 
-A whimsical bakery operations prototype: help Grandma see the hidden cost of a custom order before she says yes.
+**Countertop** is Grandma’s Bakeria’s home screen: no menus, no tab bar, just three cards hanging over her counter.
 
-**Demo (earlier version):** https://mise-and-magic.r22faisa.chatgpt.site (access is managed separately from this repository)
+| Card | Grandma’s problem | What it does |
+| --- | --- | --- |
+| 📜 Recipe card | She guesses what to bake, so she wastes food or runs out | Flips to today’s plan: what to bake, how many, and one plain reason |
+| 🔔 Shop bell | The Bakery can afford marketing; she can’t | One sentence becomes Instagram, Discord and text messages, sent at once |
+| 🍪 Cookie jar | She can’t see what’s working | Fills as students claim, with tonight’s and this week’s totals |
+
+**Plan, Ring, Earn.** Students never download anything: they get the message where they already are and claim it there.
+
+Open `index.html` for the Countertop. The earlier, fuller prototype is the **back office** at `studio.html`. How the four parts fit together, and the live-mode plan with the Discord bot, are in [CONTRACT.md](CONTRACT.md).
+
+In this build the sends and the students' claims are simulated in the browser (the stub hub). The illustrated café scene is the footer of both pages.
+
+---
+
+## Back office (`studio.html`)
 
 ## The challenge
 
@@ -43,7 +57,12 @@ Open http://localhost:8000. Stop the server with Ctrl+C.
 
 | File | Purpose |
 | --- | --- |
-| `index.html` | Workspaces, kitchen map and order counter |
+| `index.html` | Countertop: recipe card, shop bell, cookie jar |
+| `hub.js` | Part 3 · the hub: plan data, rewriting, rings and claims (stub) |
+| `countertop.js` / `countertop.css` | Part 1 · home screen, recipe card and jar |
+| `bell.js` | Part 2 · the bell: voice, four buttons, three previews |
+| `cafe-scene.css` | Styles for the illustrated footer |
+| `studio.html` | Back office: workspaces, kitchen map and order counter |
 | `style.css` | Theme, responsive layout and print styling |
 | `app.js` | Tabs, customer flow and financial calculations |
 | `bakery-map.js` | Floor plan, simulated motion sensors and route optimizer |
