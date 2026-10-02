@@ -3,54 +3,54 @@ const KIND_KEY = "drm-kind-words-v1";
 
 const testimonials = [
   {
+    name: "Priya S.",
+    tag: "Studied here all through finals",
+    stars: 5,
+    text: "Grandma topped up my tea without asking and saved my corner table every Thursday. The Bakery next door times you out after an hour.",
+  },
+  {
+    name: "Marcus & Jen",
+    tag: "First date, two years ago",
+    stars: 5,
+    text: "Our first date was awkward until Grandma brought over two spoons and one Fall Parfait. We’re still sharing parfaits here.",
+  },
+  {
+    name: "The class of ’14",
+    tag: "Ten-year reunion",
+    stars: 5,
+    text: "Same booths, same cinnamon smell, same Grandma remembering everyone’s order. You can’t franchise that.",
+  },
+  {
     name: "Mrs. Patel",
     tag: "Regular since 1998",
     stars: 5,
-    text: "She remembered my granddaughter’s nut allergy three years after I mentioned it once. The chain asked me to spell my name twice.",
+    text: "She remembered my granddaughter’s nut allergy three years after I mentioned it once. The Bakery asked me to spell my name twice.",
+  },
+  {
+    name: "Daniel K.",
+    tag: "Tried The Bakery’s ‘Autumn Parfait’",
+    stars: 5,
+    text: "It tastes like someone described Grandma’s Fall Parfait over the phone. Came back next door the same week.",
   },
   {
     name: "Milo R.",
     tag: "Office party, 48 cupcakes",
     stars: 5,
-    text: "Grandma was honest about what a rush order really costs, then offered a pickup that worked for both of us. Still the best chocolate cupcakes on the block.",
-  },
-  {
-    name: "June & Ada",
-    tag: "Saturday picnics",
-    stars: 5,
-    text: "Lemon cupcakes that actually taste like lemons. We walk past two other bakeries to get here.",
+    text: "Grandma was honest about what a rush order really costs, then offered a pickup that worked for both of us.",
   },
   {
     name: "Ben",
-    tag: "Owner, the bookshop next door",
-    stars: 5,
-    text: "My customers come in smelling of cinnamon. That’s free advertising for both of us.",
-  },
-  {
-    name: "The Okafor family",
-    tag: "Birthday regulars",
-    stars: 5,
-    text: "Our kids helped fund the fall parfait and now they tell everyone it’s ‘their’ recipe.",
-  },
-  {
-    name: "Daniel K.",
-    tag: "Switched from the chain",
-    stars: 5,
-    text: "Same price, twice the care. The chain’s muffins are fine. Grandma’s are a reason to get up early.",
-  },
-  {
-    name: "Lucía",
-    tag: "Morning coffee crowd",
+    tag: "Owner, the bookshop down the street",
     stars: 4,
-    text: "The parfaits come out faster since she rearranged the kitchen, and they’re still made by hand.",
+    text: "My customers come in smelling of cinnamon. Free advertising for both of us, and the parfaits come out faster since she rearranged the kitchen.",
   },
 ];
 
 const versus = [
   ["Would recommend to a friend", 97, 61],
+  ["Good place to study for hours", 95, 22],
   ["Remembers my order", 92, 18],
-  ["Baked fresh that morning", 100, 55],
-  ["Custom orders priced fairly", 94, 47],
+  ["Fall Parfait is the original", 100, 9],
 ];
 
 function loadKind() {
@@ -117,7 +117,7 @@ function startRotation() {
 }
 
 $("versus").innerHTML =
-  `<div class="versus-key"><span><i class="ours"></i>Grandma’s</span><span><i class="theirs"></i>The chain</span></div>` +
+  `<div class="versus-key"><span><i class="ours"></i>Grandma’s</span><span><i class="theirs"></i>The Bakery (next door)</span></div>` +
   versus
     .map(
       ([label, ours, theirs]) => `<div class="versus-row">

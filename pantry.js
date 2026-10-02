@@ -508,4 +508,7 @@ document.querySelectorAll("#cost input").forEach((e) =>
 );
 $("startChallenge").addEventListener("click", renderStock);
 
+const pantrySavingsMonthly = () =>
+  buildInsights().reduce((s, i) => s + i.save, 0);
+
 renderPantry();

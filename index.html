@@ -52,9 +52,69 @@
           ><button class="tab" data-view="cost" aria-pressed="false">
             ♡ &nbsp; The cost of yes</button
           ><button class="tab" data-view="story" aria-pressed="false">
-            ✿ &nbsp; Save Grandma’s day
+            ✿ &nbsp; Save Grandma’s day</button
+          ><button class="tab" data-view="lab" aria-pressed="false">
+            🍂 &nbsp; Fall Parfait lab
           </button>
         </nav>
+        <section class="ledger-bar" aria-label="Savings ledger">
+          <div class="ledger-total">
+            <label class="eyebrow ledger-period"
+              >SAVED FOR GRANDMA PER<select id="ledgerPeriod">
+                <option value="day">day</option>
+                <option value="week" selected>week</option>
+                <option value="month">month</option>
+              </select></label
+            >
+            <strong id="ledgerTotal" aria-live="polite">$0.00</strong>
+            <small id="ledgerSplit"></small>
+          </div>
+          <div class="ledger-chips" id="ledgerChips"></div>
+          <div class="ledger-actions">
+            <button
+              id="ledgerOpen"
+              class="secondary"
+              aria-expanded="false"
+              aria-controls="ledgerPanel"
+            >
+              See the math</button
+            ><button id="ledgerSpend" class="primary">
+              Spend it on parfaits →
+            </button>
+          </div>
+        </section>
+        <article id="ledgerPanel" class="window ledger-panel" hidden>
+          <div class="titlebar">
+            <span>♡ &nbsp; savings_receipt.exe</span><span>✧</span>
+          </div>
+          <div class="window-body">
+            <div class="row">
+              <div>
+                <div class="eyebrow">EVERY DOLLAR, WITH THE MATH ATTACHED</div>
+                <h2 id="ledgerHeading">What our systems save Grandma</h2>
+              </div>
+              <span class="badge" id="ledgerBadge">PER WEEK</span>
+            </div>
+            <div class="ledger-table" id="ledgerRows"></div>
+            <div class="ledger-totals" id="ledgerTotals"></div>
+            <div class="controls">
+              <button id="ledgerPrint" class="primary">Print the receipt</button
+              ><button id="ledgerReset" class="secondary">
+                Clear order wins</button
+              ><span
+                >Recurring savings scale with the period; one-off order wins
+                don’t.</span
+              >
+            </div>
+            <p class="footnote">
+              Time is valued at the hourly rate in Movement studio and is listed
+              separately from cash: freed time only becomes cash if paid hours
+              fall. Each saving is counted once. Route savings use the
+              floor-plan estimate until a sensor day measures them. A week is 6
+              working days and a month is 26.
+            </p>
+          </div>
+        </article>
         <section id="movement" class="view">
           <article class="window kitchen floor">
             <div class="titlebar">
@@ -538,9 +598,11 @@
               <span class="eyebrow">A LITTLE BAKERY. A BIG REASON.</span>
               <h2>Help her keep the keys.</h2>
               <p>
-                A big chain has moved in across the street. They have a whole
-                operations team. Grandma has her recipe book, her regulars, and
-                one pair of hands.
+                Last year <b>The Bakery</b>, a nationwide chain, opened right
+                next door, and its “Autumn Parfait” tastes suspiciously like
+                Grandma’s famous Fall Parfait. They have a whole operations
+                team. Grandma has her recipe book, her regulars, and one pair of
+                hands.
               </p>
               <p class="story-quote">
                 “I don’t need to be the biggest bakery.<br />I just want to
@@ -652,6 +714,167 @@
               </article>
             </aside>
           </div>
+        </section>
+        <section id="lab" class="view" hidden>
+          <div class="workspace">
+            <article class="window planner">
+              <div class="titlebar">
+                <span>🍂 &nbsp; parfait_planner.exe</span><span>✧</span>
+              </div>
+              <div class="window-body">
+                <div class="eyebrow">
+                  PART 2 · TURN THE SAVINGS INTO PARFAITS
+                </div>
+                <h2 id="plannerTitle">Plan the new Fall Parfait</h2>
+                <div class="budget-row">
+                  <label
+                    >Grocery budget ($)<input
+                      id="budget"
+                      type="number"
+                      min="0"
+                      max="10000"
+                      step="0.01"
+                      value="40"
+                  /></label>
+                  <button id="useSavings" class="secondary">
+                    Use my savings
+                  </button>
+                  <label>Recipe<select id="recipePick"></select></label>
+                </div>
+                <div class="mini-head">
+                  IN-HOUSE GROCERY PRICES · EDIT THEM TO MATCH THE STORE
+                </div>
+                <div class="table-wrap">
+                  <table class="grocery">
+                    <thead>
+                      <tr>
+                        <th>Ingredient</th>
+                        <th>Pack price ($)</th>
+                        <th>Pack size</th>
+                        <th>Unit</th>
+                        <th>Per parfait</th>
+                        <th>Sec / parfait</th>
+                        <th><span class="sr-only">Remove</span></th>
+                      </tr>
+                    </thead>
+                    <tbody id="groceryRows"></tbody>
+                  </table>
+                </div>
+                <div class="controls">
+                  <button id="addIngredient" class="secondary">
+                    + Add ingredient</button
+                  ><button id="resetRecipe" class="secondary">
+                    Reset prices</button
+                  ><span id="plannerStatus" aria-live="polite"></span>
+                </div>
+                <p class="footnote">
+                  The store sells whole packs, so the planner buys whole packs
+                  and finds the most parfaits that fit the budget. Starting
+                  prices are guesses; replace them with the store’s shelf
+                  prices. “Sec / parfait” is the hands-on time for that layer
+                  and drives the assembly line below.
+                </p>
+              </div>
+            </article>
+            <aside>
+              <article class="window savings">
+                <div class="titlebar">
+                  <span>♡ &nbsp; shopping_list.txt</span><span>✧</span>
+                </div>
+                <div class="window-body">
+                  <div class="eyebrow">THIS BUDGET MAKES</div>
+                  <div class="big" id="maxParfaits">0<span>parfaits</span></div>
+                  <div class="metric-line">
+                    <span>Ingredient cost per parfait</span
+                    ><b id="perParfait">$0.00</b>
+                  </div>
+                  <div class="metric-line">
+                    <span>Left over after shopping</span
+                    ><b id="leftover">$0.00</b>
+                  </div>
+                  <div id="nextParfait" class="verdict"></div>
+                  <ol id="shoppingList" class="shopping-list"></ol>
+                  <div class="quote-card">
+                    <span>SELL IT AT A 65% MARGIN</span
+                    ><strong id="menuPrice">$0.00</strong>
+                    <small id="bakeryCompare"></small>
+                  </div>
+                  <button id="printList" class="secondary full">
+                    Print the shopping list
+                  </button>
+                </div>
+              </article>
+            </aside>
+          </div>
+          <article class="window line-window">
+            <div class="titlebar">
+              <span>✿ &nbsp; assembly_line.exe</span><span>✧</span>
+            </div>
+            <div class="window-body">
+              <div class="row">
+                <div>
+                  <div class="eyebrow">FOUR PAIRS OF HANDS, ONE LINE</div>
+                  <h2>Who stands where</h2>
+                </div>
+                <div class="line-inputs">
+                  <label
+                    >Parfaits to make<input
+                      id="lineTarget"
+                      type="number"
+                      min="1"
+                      max="500"
+                      value="10"
+                  /></label>
+                  <label
+                    >Minutes we have<input
+                      id="lineMinutes"
+                      type="number"
+                      min="1"
+                      max="240"
+                      value="45"
+                  /></label>
+                </div>
+              </div>
+              <div class="team-names" id="teamNames"></div>
+              <div class="line-viz" id="lineViz"></div>
+              <div class="route-compare line-compare">
+                <div>
+                  <span>EVERYONE MAKES THEIR OWN</span><b id="soloTime">—</b
+                  ><small>reaching across the whole table</small>
+                </div>
+                <div class="good">
+                  <span>ASSEMBLY LINE</span><b id="lineTime">—</b
+                  ><small id="lineRate">—</small>
+                </div>
+                <div class="best">
+                  <span>TIME SAVED</span><b id="lineSaved">—</b
+                  ><small id="lineFits">—</small>
+                </div>
+              </div>
+              <p class="footnote">
+                Layers are split into four stations in recipe order so the
+                busiest station is as light as possible; that station sets the
+                pace. Solo assembly adds 1.5 sec of reaching per ingredient.
+                Chopping and washing up are not included.
+              </p>
+            </div>
+          </article>
+          <article class="window vote-window">
+            <div class="titlebar">
+              <span>♡ &nbsp; regulars_vote.exe</span><span>✧</span>
+            </div>
+            <div class="window-body">
+              <div class="eyebrow">
+                THE BAKERY CAN COPY A RECIPE. IT CAN’T COPY HER REGULARS.
+              </div>
+              <h2>Let the neighbours pick the new Fall Parfait</h2>
+              <div class="vote-grid" id="voteGrid"></div>
+              <p class="footnote">
+                Starting votes are demo numbers; one vote per browser, and you
+                can change it.
+              </p>
+            </div>
+          </article>
           <article class="window parfait-fund">
             <div class="titlebar">
               <span>✿ &nbsp; fall_parfait_fund.exe</span><span>🍂</span>
@@ -659,35 +882,34 @@
             <div class="window-body">
               <div class="fund-grid">
                 <div class="cup-side">
-                  <div class="eyebrow">FILL THE CUP · EXPERIMENT #7</div>
-                  <h2>Maple Pumpkin Crumble Parfait</h2>
+                  <div class="eyebrow">FILL THE CUP · THE NEW FALL PARFAIT</div>
+                  <h2>Savings become layers</h2>
                   <p class="fund-lede">
-                    Grandma is testing a new fall parfait. Every donation buys a
-                    real layer of the experiment, and the cup fills as you give.
+                    Every system adds a layer: steps saved become granola,
+                    smarter quotes become spiced apples, pantry savings become
+                    pumpkin cream. Neighbours’ gifts add the candied pecans on
+                    top.
                   </p>
                   <div class="cup-wrap">
                     <svg
                       id="cup"
                       viewBox="0 0 260 340"
                       role="img"
-                      aria-label="Parfait cup filling with donated layers"
+                      aria-label="Parfait cup filling with layers from savings and donations"
                     ></svg>
                     <div class="cup-progress">
                       <strong id="fundRaised">$0</strong>
-                      <span id="fundGoal">of $250 to launch</span>
+                      <span id="fundGoal">of $300 to launch</span>
                       <div class="time-track"><div id="fundFill"></div></div>
                     </div>
                   </div>
+                  <ul id="cupLegend" class="cup-legend"></ul>
                   <ol id="milestones" class="milestones"></ol>
                 </div>
                 <div class="give-side">
                   <form id="donateForm" class="donate-form">
                     <fieldset>
-                      <legend>1 · Pick a layer to sponsor</legend>
-                      <div id="layerPicks" class="layer-picks"></div>
-                    </fieldset>
-                    <fieldset>
-                      <legend>2 · Choose an amount</legend>
+                      <legend>Add the pecans: give a little</legend>
                       <div class="amount-picks" id="amountPicks">
                         <button type="button" data-amount="3">$3</button
                         ><button type="button" data-amount="5" class="on">
@@ -705,7 +927,7 @@
                       </div>
                     </fieldset>
                     <fieldset>
-                      <legend>3 · Sign the cup (optional)</legend>
+                      <legend>Sign the cup (optional)</legend>
                       <label
                         >Name for the donor wall<input
                           id="donorName"
@@ -722,7 +944,7 @@
                       /></label>
                     </fieldset>
                     <button class="primary" type="submit" id="donateBtn">
-                      ♡ Add my layer to the cup
+                      ♡ Add my gift to the cup
                     </button>
                     <p
                       id="donateStatus"
@@ -730,7 +952,7 @@
                       aria-live="polite"
                     ></p>
                   </form>
-                  <div class="mini-head">DONOR WALL</div>
+                  <div class="mini-head">NEIGHBOURS WHO CHIPPED IN</div>
                   <ul id="donorWall" class="donor-wall"></ul>
                   <div class="controls">
                     <button id="resetFund" class="secondary" type="button">
@@ -749,7 +971,9 @@
         <section class="love" aria-labelledby="loveTitle">
           <div class="love-head">
             <div>
-              <div class="eyebrow">WHY THE NEIGHBOURS WALK PAST THE CHAIN</div>
+              <div class="eyebrow">
+                WHY THE NEIGHBOURS WALK PAST THE BAKERY NEXT DOOR
+              </div>
               <h2 id="loveTitle">Kind words from the regulars</h2>
             </div>
             <div class="scoreboard">
@@ -758,7 +982,7 @@
                 ><small id="ourCount">★★★★★ · 214 reviews</small>
               </div>
               <div class="score theirs">
-                <span>The chain across the street</span><strong>3.4</strong
+                <span>The Bakery (next door)</span><strong>3.4</strong
                 ><small>★★★☆☆ · 88 reviews</small>
               </div>
             </div>
@@ -810,7 +1034,9 @@
     <script src="app.js"></script>
     <script src="bakery-map.js"></script>
     <script src="pantry.js"></script>
+    <script src="ledger.js"></script>
     <script src="parfait.js"></script>
+    <script src="planner.js"></script>
     <script src="testimonials.js"></script>
   </body>
 </html>

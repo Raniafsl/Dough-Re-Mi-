@@ -685,6 +685,7 @@ $("sensorDay").addEventListener("click", () => {
     if (i < day.events.length) requestAnimationFrame(step);
     else {
       sensorResult = day;
+      document.dispatchEvent(new Event("savings-changed"));
       renderLegs(day.legs);
       renderInsights();
       $("sensorDay").disabled = false;
@@ -715,6 +716,17 @@ $("applySensors").addEventListener("click", () => {
 });
 
 $("wage").addEventListener("input", renderInsights);
+
+// Seconds of walking saved per cycle by the efficient route (measured if a
+// sensor day has run for this workflow, else the floor-plan estimate).
+function workflowSavings(key) {
+  const w = workflows[key],
+    measured = !!sensorResult && workflowKey === key,
+    obsPx = measured
+      ? sensorResult.px / sensorResult.cycles
+      : routeLength(w.observed);
+  return { sec: seconds(obsPx) - seconds(bestRoute(w).d), measured };
+}
 
 drawFloor();
 selectWorkflow("parfait");
