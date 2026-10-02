@@ -1,78 +1,73 @@
-// Fall parfait fund: donations fill the cup, one experimental layer at a time.
-const FUND_KEY = "drm-parfait-v1";
+// Fill the cup: every system's savings becomes a layer of the new Fall
+// Parfait, and neighbours' gifts add the topping.
+const FUND_KEY = "drm-parfait-v2",
+  fundGoal = 300;
 
 const layers = [
   {
-    id: "granola",
+    id: "steps",
     name: "Brown-butter granola",
-    goal: 60,
+    from: "steps saved",
     color: "#c48a4a",
     dot: "#8a5a2b",
-    buys: "oats, butter and honey for the crunchy base",
   },
   {
-    id: "apple",
-    name: "Spiced apple compote",
-    goal: 50,
+    id: "quotes",
+    name: "Spiced apples",
+    from: "smarter quotes",
     color: "#e7bd62",
     dot: "#b5862e",
-    buys: "local apples, cinnamon and nutmeg",
   },
   {
-    id: "pumpkin",
+    id: "pantry",
     name: "Pumpkin-maple cream",
-    goal: 70,
+    from: "pantry savings",
     color: "#e28a45",
     dot: "#c2662a",
-    buys: "pumpkin purée, maple syrup and cream cheese",
   },
   {
-    id: "cream",
+    id: "rush",
     name: "Cinnamon whipped cream",
-    goal: 40,
+    from: "the rush-order rescue",
     color: "#fbf0dd",
     dot: "#e1c9a4",
-    buys: "fresh cream and a pinch of cinnamon",
   },
   {
-    id: "pecan",
-    name: "Candied pecans & drizzle",
-    goal: 30,
+    id: "events",
+    name: "Maple drizzle",
+    from: "event prep",
+    color: "#b5651d",
+    dot: "#7a4211",
+  },
+  {
+    id: "gifts",
+    name: "Candied pecans",
+    from: "neighbours’ gifts",
     color: "#8b5a2b",
     dot: "#5e3b1a",
-    buys: "pecans and a maple drizzle on top",
   },
 ];
-const fundGoal = layers.reduce((s, l) => s + l.goal, 0);
 const milestones = [
   [0.25, "First test batch", "Grandma tries three granola ratios."],
-  [0.5, "Taste-test Saturday", "Donors get the first spoonfuls."],
+  [0.5, "Taste-test Saturday", "The regulars get the first spoonfuls."],
   [0.75, "Recipe card written", "The winning version goes in the book."],
-  [
-    1,
-    "Fall parfait launches",
-    "On the menu, with your names on the chalkboard.",
-  ],
+  [1, "Fall parfait launches", "On the menu, with names on the chalkboard."],
 ];
 
 function seedFund() {
-  const d = (name, layer, amount, note = "") => ({
+  const d = (name, amount, note = "") => ({
     name,
-    layer,
     amount,
     note,
     date: Date.now(),
   });
   return {
     donations: [
-      d("Mrs. Patel", "granola", 20, "For the granola!"),
-      d("Ben from the bookshop", "apple", 25),
-      d("The Okafor kids", "pumpkin", 15, "PUMPKIN!!"),
-      d("A friendly neighbour", "granola", 10),
-      d("Lucía", "pumpkin", 20, "Maple forever."),
-      d("Tom & Priya", "cream", 5),
+      d("Mrs. Patel", 20, "For the granola!"),
+      d("The Thursday study group", 15, "Fuel for finals."),
+      d("Ben from the bookshop", 10),
+      d("Lucía", 5, "Maple forever."),
     ],
-    extra: 0,
   };
 }
 function loadFund() {
@@ -88,21 +83,13 @@ function saveFund() {
   } catch {}
 }
 let fund = loadFund(),
-  pickedLayer = "apple";
+  layerAmounts = {};
 
-const raisedFor = (id) =>
-  Math.min(
-    layers.find((l) => l.id === id).goal,
-    fund.donations
-      .filter((d) => d.layer === id)
-      .reduce((s, d) => s + d.amount, 0),
-  );
-const totalRaised = () => layers.reduce((s, l) => s + raisedFor(l.id), 0);
+const giftsTotal = () => fund.donations.reduce((s, d) => s + d.amount, 0);
 
 // Glass geometry: fill runs from y=300 (bottom) to y=62 (rim).
 const CUP_BOTTOM = 300,
   CUP_TOP = 62,
-  perDollar = (CUP_BOTTOM - CUP_TOP) / fundGoal,
   glass = "M38 48 L222 48 L194 288 Q190 304 172 304 L88 304 Q70 304 66 288 Z";
 
 function buildCup() {
@@ -113,14 +100,11 @@ function buildCup() {
     <rect x="120" y="304" width="20" height="24" rx="4" fill="#efe4d0" stroke="#b8a584"/>
     <path d="${glass}" fill="#fffaf0"/>
     <g clip-path="url(#glassClip)" id="cupLayers"></g>
-    <g clip-path="url(#glassClip)" id="cupGuides"></g>
+    <line x1="30" x2="230" y1="${CUP_TOP}" y2="${CUP_TOP}" class="cup-guide"/>
     <path d="${glass}" fill="none" stroke="#9c8a73" stroke-width="3"/>
     <path d="M58 70 L80 270" stroke="#ffffff" stroke-width="6" stroke-linecap="round" opacity=".55"/>
-    <g id="cupTag"><line x1="214" y1="64" x2="236" y2="92" stroke="#a86e80"/><rect x="214" y="90" width="44" height="26" rx="5" fill="#e9b4c7" stroke="#a86e80"/><text x="236" y="107" text-anchor="middle" class="cup-tag">#7</text></g>
     <text id="cupLeaf" x="130" y="40" text-anchor="middle" font-size="30" opacity="0">🍁</text>`;
-  const g = svg.querySelector("#cupLayers"),
-    guides = svg.querySelector("#cupGuides");
-  let goalY = CUP_BOTTOM;
+  const g = svg.querySelector("#cupLayers");
   for (const l of layers) {
     const grp = el("g", { id: "layer-" + l.id });
     grp.append(
@@ -134,49 +118,58 @@ function buildCup() {
       }),
     );
     // A few flecks so each layer reads as texture, not just colour
-    const flecks = el("g", { class: "flecks" });
-    const rand = seededRandom(l.goal);
+    const flecks = el("g", { class: "flecks" }),
+      rand = seededRandom(l.id.length * 97);
     for (let i = 0; i < 14; i++)
       flecks.append(
         el("circle", {
           cx: 50 + rand() * 160,
-          cy: rand(),
+          cy: 0,
+          "data-f": rand(),
           r: 1.6 + rand() * 2.2,
           fill: l.dot,
         }),
       );
     grp.append(flecks);
     g.append(grp);
-    goalY -= l.goal * perDollar;
-    guides.append(
-      el("line", { x1: 30, x2: 230, y1: goalY, y2: goalY, class: "cup-guide" }),
-    );
   }
 }
 
-function renderCup() {
+function renderCup(totals) {
+  layerAmounts = { ...totals.byCat, gifts: giftsTotal() };
+  const total = layers.reduce(
+      (s, l) => s + Math.max(0, layerAmounts[l.id] || 0),
+      0,
+    ),
+    perDollar = (CUP_BOTTOM - CUP_TOP) / Math.max(fundGoal, total);
   let y = CUP_BOTTOM;
   for (const l of layers) {
-    const h = raisedFor(l.id) * perDollar,
-      grp = $("layer-" + l.id);
+    const h = Math.max(0, layerAmounts[l.id] || 0) * perDollar,
+      grp = $("layer-" + l.id),
+      rect = grp.querySelector("rect");
     y -= h;
-    const rect = grp.querySelector("rect");
     rect.setAttribute("y", y);
     rect.setAttribute("height", h);
-    grp.querySelectorAll(".flecks circle").forEach((c, i) => {
-      if (!c.dataset.f) c.dataset.f = c.getAttribute("cy");
+    grp.querySelectorAll(".flecks circle").forEach((c) => {
       c.setAttribute("cy", y + Number(c.dataset.f) * h);
       c.style.opacity = h > 6 ? 1 : 0;
     });
   }
-  const pct = totalRaised() / fundGoal;
+  const pct = total / fundGoal;
   $("cupLeaf").setAttribute("opacity", pct >= 1 ? 1 : 0);
-  $("fundRaised").textContent = money(totalRaised());
+  $("fundRaised").textContent = money(total);
   $("fundGoal").textContent =
     pct >= 1
-      ? "Cup full! The parfait launches."
-      : `of ${money(fundGoal)} to launch · ${Math.round(pct * 100)}%`;
+      ? `Cup full! ${money(total - fundGoal)} over the ${money(fundGoal)} goal.`
+      : `of ${money(fundGoal)} to launch · ${Math.round(pct * 100)}% · per ${ledger.period}`;
   $("fundFill").style.width = Math.min(100, pct * 100) + "%";
+  $("cupLegend").innerHTML = [...layers]
+    .reverse()
+    .map(
+      (l) =>
+        `<li><i style="background:${l.color}"></i><span><b>${l.name}</b> from ${l.from}</span><em>${money(Math.max(0, layerAmounts[l.id] || 0))}</em></li>`,
+    )
+    .join("");
   $("milestones").innerHTML = milestones
     .map(
       ([at, title, text]) =>
@@ -185,42 +178,17 @@ function renderCup() {
     .join("");
 }
 
-function renderPicks() {
-  if (raisedFor(pickedLayer) >= layers.find((l) => l.id === pickedLayer).goal)
-    pickedLayer =
-      layers.find((l) => raisedFor(l.id) < l.goal)?.id || pickedLayer;
-  $("layerPicks").innerHTML = layers
-    .map((l) => {
-      const r = raisedFor(l.id),
-        full = r >= l.goal;
-      return `<label class="layer-pick${full ? " full" : ""}">
-        <input type="radio" name="layer" value="${l.id}" ${l.id === pickedLayer ? "checked" : ""} ${full ? "disabled" : ""}/>
-        <i style="background:${l.color}"></i>
-        <span><b>${l.name}</b><small>${full ? "Fully funded ♡" : `${money(r)} of ${money(l.goal)} · ${l.buys}`}</small></span>
-        <em style="width:${(r / l.goal) * 100}%"></em>
-      </label>`;
-    })
-    .join("");
-}
-
 function renderWall() {
   const wall = $("donorWall");
   wall.replaceChildren();
   for (const d of fund.donations.slice(-7).reverse()) {
-    const li = document.createElement("li"),
-      layer = layers.find((l) => l.id === d.layer);
-    li.innerHTML = `<i style="background:${layer.color}"></i><span><b></b> added ${money(d.amount)} of ${layer.name.toLowerCase()}<q></q></span>`;
+    const li = document.createElement("li");
+    li.innerHTML = `<i style="background:#8b5a2b"></i><span><b></b> added ${money(d.amount)} of candied pecans<q></q></span>`;
     li.querySelector("b").textContent = d.name;
     if (d.note) li.querySelector("q").textContent = d.note;
     else li.querySelector("q").remove();
     wall.append(li);
   }
-}
-
-function renderFund() {
-  renderCup();
-  renderPicks();
-  renderWall();
 }
 
 $("amountPicks").addEventListener("click", (e) => {
@@ -238,55 +206,31 @@ $("donateAmount").addEventListener("input", () =>
       x.classList.toggle("on", x.dataset.amount === $("donateAmount").value),
     ),
 );
-$("layerPicks").addEventListener(
-  "change",
-  (e) => (pickedLayer = e.target.value),
-);
 
 $("donateForm").addEventListener("submit", (e) => {
   e.preventDefault();
-  let left = Math.round(num("donateAmount") * 100) / 100;
-  if (!left) return;
+  const amount = Math.round(num("donateAmount") * 100) / 100;
+  if (!amount) return;
   const name = $("donorName").value.trim() || "A friendly neighbour",
-    note = $("donorNote").value.trim(),
-    given = left,
-    order = [
-      pickedLayer,
-      ...layers.map((l) => l.id).filter((id) => id !== pickedLayer),
-    ],
-    parts = [];
-  // Fill the chosen layer first; any overflow tops up the next layer that needs it.
-  for (const id of order) {
-    const room = layers.find((l) => l.id === id).goal - raisedFor(id);
-    if (room <= 0 || left <= 0) continue;
-    const amount = Math.min(room, left);
-    fund.donations.push({
-      name,
-      layer: id,
-      amount,
-      note: parts.length ? "" : note,
-      date: Date.now(),
-    });
-    parts.push(
-      `${money(amount)} → ${layers.find((l) => l.id === id).name.toLowerCase()}`,
-    );
-    left -= amount;
-  }
-  if (left > 0) fund.extra += left;
+    note = $("donorNote").value.trim();
+  fund.donations.push({ name, amount, note, date: Date.now() });
   saveFund();
-  renderFund();
+  renderWall();
+  queueLedger();
   $("donorNote").value = "";
-  $("donateStatus").textContent = parts.length
-    ? `Thank you, ${name}! ${parts.join(", ")}.${left > 0 ? ` ${money(left)} goes to tasting-day cups.` : ""}`
-    : `The cup is already full. ${money(given)} goes to tasting-day cups. Thank you!`;
+  $("donateStatus").textContent =
+    `Thank you, ${name}! ${money(amount)} of candied pecans went on top.`;
 });
 
 $("resetFund").addEventListener("click", () => {
   fund = seedFund();
   saveFund();
-  renderFund();
-  $("donateStatus").textContent = "Demo cup reset.";
+  renderWall();
+  queueLedger();
+  $("donateStatus").textContent = "Gifts reset to the demo ones.";
 });
 
 buildCup();
-renderFund();
+renderWall();
+ledgerListeners.push(renderCup);
+renderCup(ledgerTotals());
