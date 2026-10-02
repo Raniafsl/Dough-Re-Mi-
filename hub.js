@@ -1,29 +1,30 @@
-// PART 3 · The hub: plan data, message rewriting, rings and claims.
+// PART 3 · The hub: plan data, message rewriting, broadcasts, sales, and the
+// monthly check-in.
 //
-// Countertop (part 1), the bell (part 2) and the Discord bot (part 4) only
-// talk to the hub through the contract below; see CONTRACT.md.
+// Countertop (part 1), the bell (part 2) and the server and Discord bot
+// (part 4) only talk to the hub through the contract below; see CONTRACT.md.
 //
-//   Hub.plan()                  → suggested { reason, items: [{ id, emoji, name, qty, step, when, why }], agenda }
-//   Hub.finalPlan()             → null, or { at, items: [{ id, emoji, name, qty, when }] }
+//   Hub.plan()                  → suggested { reason, items: [{ id, icon, name, qty, step, when, why }], agenda }
+//   Hub.finalPlan()             → null, or { at, items }
 //   Hub.finalisePlan(items)     → saves Grandma's accepted plan
-//   Hub.mode()                  → { live, discord, channel }; Hub.onMode(fn) when it changes
-//   Hub.monthly()               → { question, options, current, reports, nextRun, trial }
-//   Hub.setMonthly({ question, options }), Hub.runMonthly(), Hub.closeMonthlyNow()
-//   Hub.markReportSeen(), Hub.addTrial(name, month), Hub.onMonthly(fn)
-//   Hub.rewrite(kind, sentence) → { insta, discord, sms, read }  (kind: treats | special | event | poll)
-//   Hub.ring({ kind, text })    → ring   (sends everywhere; claims arrive later)
-//   Hub.onClaim(fn)             → fn(claim, ring) for every claim from any channel
-//   Hub.onRingDone(fn)          → fn(ring) when a ring's replies have settled
-//   Hub.summary()               → { tonight, week, claims, rescued, seats, votes, byChannel, sold, rings, goal }
+//   Hub.rewrite(kind, sentence) → { text, insta, discord, sms, read }  (kind: treats | special | event | poll)
+//   Hub.ring({ kind, text })    → ring   (a broadcast; only polls collect votes)
+//   Hub.onVote(fn)              → fn(ring) when a bell poll gets a vote
+//   Hub.addSale({ amount, method, items, source }) / Hub.removeSale(id)
+//   Hub.onSales(fn)             → fn({ type: "added" | "removed", ... })
+//   Hub.summary()               → { goal, today, count, average, week, byMethod, items, sales, rings }
+//   Hub.monthly(), Hub.setMonthly(), Hub.runMonthly(), Hub.closeMonthlyNow(),
+//   Hub.markReportSeen(), Hub.addTrial(), Hub.onMonthly(fn)
+//   Hub.mode() / Hub.onMode(fn) → { live, discord, channel };  Hub.onSync(fn)
 //   Hub.newDay()
 //
-// Two modes, same calls. Served by server/server.js the hub runs LIVE: rings
-// go to the server (and on to Discord) and real claims stream back. Opened
-// any other way it runs as a STUB and simulates student replies.
+// Two modes, same calls. Served by server/server.js the hub runs LIVE: the
+// server's database is the source of truth and rings go on to Discord.
+// Opened any other way it runs in DEMO mode, entirely in the browser.
 
 const Hub = (() => {
-  const STATE_KEY = "countertop-v1",
-    GOAL = 150, // dollars that fill the parfait on a good evening
+  const STATE_KEY = "countertop-v2",
+    GOAL = 400, // a good day's takings fill the parfait
     todayKey = new Date().toDateString();
 
   // ── Plan data ─────────────────────────────────────────────────────────
@@ -207,7 +208,7 @@ const Hub = (() => {
       insta: {
         emoji: k.emoji,
         head: k.head,
-        text: `${s} ${kind === "treats" ? "First come, first served, so tap the link in bio to claim yours 💛" : kind === "poll" ? "Vote in our story today 🗳️" : "See you at Grandma’s 💛"}\n\n#GrandmasBakeria ${tags} #CampusEats`,
+        text: `${s} ${kind === "treats" ? "First come, first served at the counter 💛" : kind === "poll" ? "Vote in our story today 🗳️" : "See you at Grandma’s 💛"}\n\n#GrandmasBakeria ${tags} #CampusEats`,
       },
       discord: {
         head: `${k.emoji} ${k.head}`,
@@ -216,74 +217,50 @@ const Hub = (() => {
           ? read.options.map((o, i) => `${["🅰️", "🅱️", "🅲"][i]} ${o}`)
           : kind === "poll"
             ? ["👍 Yes", "👎 No"]
-            : kind === "event"
-              ? ["✅ I’m coming"]
-              : ["🍪 Claim one"],
+            : [], // everything else is a plain announcement
       },
-      sms: `Grandma’s Bakeria: ${s} ${poll ? `Reply ${read.options.map((_, i) => "ABC"[i]).join(" or ")} to vote.` : kind === "poll" ? "Reply YES or NO to vote." : kind === "event" ? "Reply YES to save a seat." : "Reply CLAIM to save one."} Reply STOP to opt out.`,
+      sms: `Grandma’s Bakeria: ${s} ${poll ? `Reply ${read.options.map((_, i) => "ABC"[i]).join(" or ")} to vote.` : kind === "poll" ? "Reply YES or NO to vote." : kind === "event" ? "See you there!" : "First come, first served at the counter."} Reply STOP to opt out.`,
       read,
     };
   }
 
-  // ── Rings and claims ─────────────────────────────────────────────────
-  const students = [
-    "Maya",
-    "Jonah",
-    "Priya",
-    "Theo",
-    "Aisha",
-    "Sam",
-    "Lucas",
-    "Noor",
-    "Ivy",
-    "Dev",
-    "Rosa",
-    "Kai",
-    "Leah",
-    "Omar",
-    "Chen",
-    "Bea",
-    "Felix",
-    "Hana",
-  ];
-  const weekBefore = [64, 88, 71, 96, 83, 58]; // earlier days this week, demo history
+  // ── Broadcasts and the day's sales ───────────────────────────────────
+  const clock = () =>
+      new Date().toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+      }),
+    newId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    weekBefore = [412, 388, 455, 431, 498, 520]; // Mon–Sat history, demo mode only
 
   function seededDay() {
-    // A lunchtime ring already poured a few layers, so the glass isn't empty.
+    // Two receipts from the morning rush, so the parfait isn't empty.
     return {
       day: todayKey,
       finalPlan: null,
-      rings: [
+      rings: [],
+      sales: [
         {
-          id: "lunch",
-          kind: "treats",
-          text: "Eight maple cookies left from lunch, 2 for $4.",
-          time: "11:40 AM",
-          claims: [
-            "Maya",
-            "Jonah",
-            "Priya",
-            "Theo",
-            "Aisha",
-            "Sam",
-            "Lucas",
-            "Noor",
-          ].map((name, i) => ({
-            name,
-            channel: [
-              "discord",
-              "text",
-              "discord",
-              "instagram",
-              "text",
-              "discord",
-              "discord",
-              "text",
-            ][i],
-            amount: 2,
-            item: "Maple Cookie",
-            rescued: true,
-          })),
+          id: "seed-1",
+          time: "8:12 AM",
+          amount: 14.5,
+          method: "card",
+          source: "scan",
+          items: [
+            { name: "Maple Cookies", amount: 7.5 },
+            { name: "Coffee", amount: 7 },
+          ],
+        },
+        {
+          id: "seed-2",
+          time: "9:40 AM",
+          amount: 19.75,
+          method: "cash",
+          source: "scan",
+          items: [
+            { name: "Fall Parfait", amount: 13 },
+            { name: "Chocolate Cupcake", amount: 6.75 },
+          ],
         },
       ],
     };
@@ -291,7 +268,7 @@ const Hub = (() => {
   function load() {
     try {
       const saved = JSON.parse(localStorage.getItem(STATE_KEY));
-      if (saved?.day === todayKey) return saved;
+      if (saved?.day === todayKey && Array.isArray(saved.sales)) return saved;
     } catch {}
     return seededDay();
   }
@@ -300,69 +277,30 @@ const Hub = (() => {
       localStorage.setItem(STATE_KEY, JSON.stringify(state));
     } catch {}
   }
-  let state = load();
-  const claimListeners = [],
-    doneListeners = [];
+  let state = load(),
+    serverWeekBefore = null;
+  const voteListeners = [],
+    salesListeners = [];
 
-  function addClaim(ring, claim) {
-    if (ring.kind === "poll") (ring.votes ||= []).push(claim.choice);
-    else ring.claims.push(claim);
-    save();
-    claimListeners.forEach((fn) => fn(claim, ring));
-  }
-
-  // STUB: students reply over the next few seconds. Live mode replaces this
-  // with claims posted by the Discord bot and the text-message gateway.
-  function simulateReplies(ring, read) {
-    const n =
-        ring.kind === "treats"
-          ? Math.max(
-              1,
-              Math.round((read.count || 6) * (0.75 + Math.random() * 0.25)),
-            )
-          : ring.kind === "special"
-            ? 10 + Math.floor(Math.random() * 7)
-            : ring.kind === "event"
-              ? 12 + Math.floor(Math.random() * 9)
-              : 24 + Math.floor(Math.random() * 14),
-      channels = ["discord", "discord", "discord", "text", "text", "instagram"],
-      gap = matchMedia("(prefers-reduced-motion: reduce)").matches
-        ? 60
-        : 5200 / n;
+  // DEMO: a bell poll gets a few simulated votes.
+  function simulateVotes(r, options) {
+    const n = 18 + Math.floor(Math.random() * 10);
     let i = 0;
     const timer = setInterval(() => {
-      const name = students[(i * 5 + state.rings.length * 3) % students.length],
-        channel = channels[Math.floor(Math.random() * channels.length)],
-        opts = read.options.length > 1 ? read.options : ["Yes", "No"],
-        amount =
-          ring.kind === "treats"
-            ? read.each
-            : ring.kind === "special"
-              ? 7.56 * 0.85
-              : 0;
-      addClaim(ring, {
-        name,
-        channel,
-        choice:
-          ring.kind === "poll"
-            ? opts[
-                Math.random() < 0.58
-                  ? 0
-                  : 1 + Math.floor(Math.random() * (opts.length - 1))
-              ]
-            : undefined,
-        amount: Math.round(amount * 100) / 100,
-        item: ring.kind === "special" ? "Student Friday order" : read.item,
-        rescued: ring.kind === "treats",
-      });
-      if (++i >= n) {
-        clearInterval(timer);
-        doneListeners.forEach((fn) => fn(ring));
-      }
-    }, gap);
+      (r.votes ||= []).push(
+        options[
+          Math.random() < 0.6
+            ? 0
+            : 1 + Math.floor(Math.random() * (options.length - 1))
+        ],
+      );
+      save();
+      voteListeners.forEach((fn) => fn(r));
+      if (++i >= n) clearInterval(timer);
+    }, 250);
   }
 
-  // ── Live mode: the server relays rings to Discord and claims back ─────
+  // ── Live mode: the server stores everything and relays rings to Discord ──
   let mode = { live: false, discord: false, channel: null };
   const modeListeners = [];
 
@@ -378,7 +316,14 @@ const Hub = (() => {
   async function syncFromServer() {
     try {
       const s = await fetch("/api/state").then((r) => r.json());
-      state = { day: todayKey, finalPlan: s.finalPlan, rings: s.rings };
+      state = {
+        day: todayKey,
+        finalPlan: s.finalPlan,
+        rings: s.rings,
+        sales: s.sales,
+      };
+      // Earlier days this week, from the database; today is added live.
+      serverWeekBefore = s.week - s.sales.reduce((t, x) => t + x.amount, 0);
       monthly = { ...monthly, ...s.monthly };
       save();
       saveMonthly();
@@ -395,16 +340,30 @@ const Hub = (() => {
     modeListeners.forEach((fn) => fn(mode));
     syncFromServer();
     const events = new EventSource("/api/events");
-    events.addEventListener("claim", (e) => {
-      const { ringId, claim } = JSON.parse(e.data),
+    // Votes on a bell poll or on the monthly check-in.
+    events.addEventListener("vote", (e) => {
+      const { ringId, choice, channel } = JSON.parse(e.data),
         r = state.rings.find((x) => x.id === ringId);
-      if (r) addClaim(r, claim);
-      else if (ringId === monthly.current?.id)
-        monthlyVote(claim.choice, claim.channel);
+      if (r) {
+        (r.votes ||= []).push(choice);
+        save();
+        voteListeners.forEach((fn) => fn(r));
+      } else if (ringId === monthly.current?.id) monthlyVote(choice, channel);
     });
-    events.addEventListener("soldout", (e) => {
-      const r = state.rings.find((x) => x.id === JSON.parse(e.data).ringId);
-      if (r) doneListeners.forEach((fn) => fn(r));
+    // Sales logged on another screen (for example the phone that scanned them).
+    events.addEventListener("sale", (e) => {
+      const sale = JSON.parse(e.data);
+      if (state.sales.some((x) => x.id === sale.id)) return;
+      state.sales.push(sale);
+      save();
+      salesListeners.forEach((fn) => fn({ type: "added", sale }));
+    });
+    events.addEventListener("sale-removed", (e) => {
+      const { id } = JSON.parse(e.data);
+      if (!state.sales.some((x) => x.id === id)) return;
+      state.sales = state.sales.filter((x) => x.id !== id);
+      save();
+      salesListeners.forEach((fn) => fn({ type: "removed", id }));
     });
     // The server sends the monthly poll by itself on the 1st, and closes it.
     events.addEventListener("monthly-open", (e) => {
@@ -430,47 +389,59 @@ const Hub = (() => {
       .then((h) => h?.ok && goLive(h))
       .catch(() => {});
 
+  // Ringing the bell is a broadcast: one message, out to every channel.
   function ring({ kind, text }) {
     const m = rewrite(kind, text),
+      options =
+        kind === "poll"
+          ? m.read.options.length > 1
+            ? m.read.options
+            : ["Yes", "No"]
+          : null,
       r = {
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        id: newId(),
         kind,
         text: m.text,
-        time: new Date().toLocaleTimeString("en-US", {
-          hour: "numeric",
-          minute: "2-digit",
-        }),
-        claims: [],
+        time: clock(),
+        options,
+        votes: options ? [] : undefined,
       };
     state.rings.push(r);
     save();
     if (mode.live)
-      fetch("/api/rings", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          id: r.id,
-          kind,
-          text: m.text,
-          limit: kind === "treats" ? m.read.count || null : null,
-          amount:
-            kind === "treats"
-              ? Math.round(m.read.each * 100) / 100
-              : kind === "special"
-                ? 6.43
-                : 0,
-          item: kind === "special" ? "Student Friday order" : m.read.item,
-          options:
-            kind === "poll"
-              ? m.read.options.length > 1
-                ? m.read.options
-                : ["Yes", "No"]
-              : null,
-          discord: m.discord,
-        }),
-      }).catch(() => {});
-    else simulateReplies(r, m.read);
+      post("/api/rings", {
+        id: r.id,
+        kind,
+        text: m.text,
+        options,
+        discord: m.discord,
+      });
+    else if (options) simulateVotes(r, options);
     return r;
+  }
+
+  // A sale, logged from a scanned (or typed-in) receipt.
+  function addSale({ amount, method, items, source }) {
+    const sale = {
+      id: newId(),
+      time: clock(),
+      amount: Math.round(Number(amount) * 100) / 100,
+      method: method || null,
+      items: (items || []).slice(0, 20),
+      source: source || "typed",
+    };
+    if (!(sale.amount > 0)) return null;
+    state.sales.push(sale);
+    save();
+    if (mode.live) post("/api/sales", sale);
+    salesListeners.forEach((fn) => fn({ type: "added", sale }));
+    return sale;
+  }
+  function removeSale(id) {
+    state.sales = state.sales.filter((x) => x.id !== id);
+    save();
+    if (mode.live) post("/api/sales/remove", { id });
+    salesListeners.forEach((fn) => fn({ type: "removed", id }));
   }
 
   // ── Monthly check-in: an automatic "what should Grandma make?" poll ──
@@ -629,31 +600,32 @@ const Hub = (() => {
   }
 
   function summary() {
-    const claims = state.rings.flatMap((r) => r.claims),
-      tonight = claims.reduce((s, c) => s + c.amount, 0),
+    const sales = state.sales,
+      today = sales.reduce((t, x) => t + x.amount, 0),
       weekday = (new Date().getDay() + 6) % 7,
-      byChannel = { discord: 0, text: 0, instagram: 0 },
-      sold = {};
-    for (const c of claims) {
-      byChannel[c.channel]++;
-      if (c.amount > 0) {
-        sold[c.item] ??= { n: 0, cash: 0 };
-        sold[c.item].n++;
-        sold[c.item].cash += c.amount;
+      byMethod = { card: 0, cash: 0, other: 0 },
+      items = {};
+    for (const x of sales) {
+      byMethod[
+        x.method === "card" || x.method === "cash" ? x.method : "other"
+      ] += x.amount;
+      for (const it of x.items || []) {
+        items[it.name] ??= { n: 0, cash: 0 };
+        items[it.name].n++;
+        items[it.name].cash += it.amount || 0;
       }
     }
     return {
       goal: GOAL,
-      tonight,
-      week: weekBefore.slice(0, weekday).reduce((s, v) => s + v, 0) + tonight,
-      claims: claims.length,
-      rescued: claims.filter((c) => c.rescued).length,
-      seats: state.rings
-        .filter((r) => r.kind === "event")
-        .reduce((s, r) => s + r.claims.length, 0),
-      votes: state.rings.reduce((s, r) => s + (r.votes?.length || 0), 0),
-      byChannel,
-      sold,
+      today,
+      count: sales.length,
+      average: sales.length ? today / sales.length : 0,
+      week:
+        (serverWeekBefore ??
+          weekBefore.slice(0, weekday).reduce((t, v) => t + v, 0)) + today,
+      byMethod,
+      items,
+      sales,
       rings: state.rings,
     };
   }
@@ -731,8 +703,10 @@ const Hub = (() => {
     onMode: (fn) => modeListeners.push(fn),
     rewrite,
     ring,
-    onClaim: (fn) => claimListeners.push(fn),
-    onRingDone: (fn) => doneListeners.push(fn),
+    onVote: (fn) => voteListeners.push(fn),
+    addSale,
+    removeSale,
+    onSales: (fn) => salesListeners.push(fn),
     summary,
     async newDay() {
       state = seededDay();

@@ -6,9 +6,7 @@ const $ = (id) => document.getElementById(id),
     new Intl.NumberFormat("en-CA", {
       style: "currency",
       currency: "CAD",
-    }).format(n),
-  channelName = (c) =>
-    ({ discord: "Discord", text: "text", instagram: "Instagram" })[c];
+    }).format(n);
 
 function toast(text, iconName) {
   const t = document.createElement("div");
@@ -131,139 +129,121 @@ function renderMode(m) {
     : "Demo mode · replies simulated";
 }
 
-// ── 3 · The parfait (its data comes from the hub) ──────────────────────
-// Each ring pours one layer, and every paid claim from that ring makes it
-// thicker. Yogurt separates the rings; the glass is full at tonight's goal.
+// ── 3 · The parfait: today's takings, from scanned receipts ────────────
+// Every receipt pours one layer (its colour follows what sold), with yogurt
+// between them; the glass is full at the day's goal.
 const GLASS_BOTTOM = 194,
   GLASS_TOP = 32,
-  YOGURT = 5,
-  layerFor = (item) =>
+  YOGURT = 4,
+  layerFor = (item = "") =>
     /cookie/i.test(item)
       ? { fill: "#c48a4a", fleck: "#8a5a2b" } // granola crumble
       : /parfait/i.test(item)
         ? { fill: "#e28a45", fleck: "#c2662a" } // pumpkin-maple cream
-        : /cupcake/i.test(item)
+        : /chocolate|cupcake|brownie/i.test(item)
           ? { fill: "#8b5a2b", fleck: "#5e3b1a" } // chocolate
-          : { fill: "#e9b4c7", fleck: "#c46a88" }; // berries
+          : /lemon/i.test(item)
+            ? { fill: "#f2d572", fleck: "#c9a63a" } // lemon curd
+            : { fill: "#e9b4c7", fleck: "#c46a88" }; // berries
 
-function renderParfait(newClaims = 0) {
+function renderParfait(fresh = false) {
   const s = Hub.summary(),
-    perDollar = (GLASS_BOTTOM - GLASS_TOP - YOGURT * 3) / s.goal,
-    rings = s.rings.filter((r) => r.claims.some((c) => c.amount > 0));
+    perDollar = (GLASS_BOTTOM - GLASS_TOP - YOGURT * 4) / s.goal;
   let y = GLASS_BOTTOM,
     svg = "";
-  rings.forEach((r, i) => {
-    const paid = r.claims.filter((c) => c.amount > 0),
-      { fill, fleck } = layerFor(paid[0].item),
-      latest = i === rings.length - 1 && newClaims > 0,
-      fresh = latest
-        ? paid.slice(-newClaims).reduce((t, c) => t + c.amount, 0) * perDollar
-        : 0,
-      h = Math.min(
-        y - GLASS_TOP,
-        paid.reduce((t, c) => t + c.amount, 0) * perDollar,
-      );
+  s.sales.forEach((sale, i) => {
+    const h = Math.min(y - GLASS_TOP, Math.max(4, sale.amount * perDollar));
     if (h <= 0) return;
     if (i > 0 && y - YOGURT > GLASS_TOP) {
       y -= YOGURT;
       svg += `<rect x="30" y="${y}" width="140" height="${YOGURT + 0.5}" fill="#fbf0dd"/>`;
     }
     y -= h;
-    svg += `<rect x="30" y="${y}" width="140" height="${h - Math.min(fresh, h) + 0.5}" transform="translate(0 ${Math.min(fresh, h)})" fill="${fill}"/>`;
-    if (fresh)
-      svg += `<rect class="pour" x="30" y="${y}" width="140" height="${Math.min(fresh, h) + 0.5}" fill="${fill}"/>`;
-    for (let k = 0; k < Math.min(14, Math.floor(h / 4) * 3); k++)
-      svg += `<circle cx="${44 + ((k * 37) % 112)}" cy="${y + 3 + ((k * 13) % Math.max(1, h - 6))}" r="2" fill="${fleck}" opacity=".7"/>`;
+    const { fill, fleck } = layerFor(sale.items?.[0]?.name),
+      pour = fresh && i === s.sales.length - 1 ? ' class="pour"' : "";
+    svg += `<g${pour}><rect x="30" y="${y}" width="140" height="${h + 0.5}" fill="${fill}"/>`;
+    for (let k = 0; k < Math.min(10, Math.floor(h / 4) * 2); k++)
+      svg += `<circle cx="${44 + ((k * 37 + i * 11) % 112)}" cy="${y + 3 + ((k * 13) % Math.max(1, h - 6))}" r="2" fill="${fleck}" opacity=".7"/>`;
+    svg += "</g>";
   });
   $("parfaitLayers").innerHTML = svg;
-  const full = s.tonight >= s.goal;
+  const full = s.today >= s.goal;
   $("parfaitTop").innerHTML = full
     ? `<g class="topping"><ellipse cx="100" cy="30" rx="58" ry="12" fill="#fffdf8" stroke="#b8a584" stroke-width="2.5"/><ellipse cx="100" cy="20" rx="38" ry="11" fill="#fffdf8" stroke="#b8a584" stroke-width="2.5"/><ellipse cx="100" cy="11" rx="18" ry="8" fill="#fffdf8" stroke="#b8a584" stroke-width="2.5"/><circle cx="104" cy="-2" r="7" fill="#c0392b"/><path d="M104 -8 q4 -8 10 -10" fill="none" stroke="#6d896c" stroke-width="2"/></g>`
     : "";
-  $("parfaitTonight").textContent = `${money(s.tonight)} tonight`;
+  $("parfaitTonight").textContent = `${money(s.today)} today`;
   $("parfaitNote").textContent = full
-    ? `${s.claims} claims · topped off! 🍒`
-    : `${s.claims} claim${s.claims === 1 ? "" : "s"} · ${Math.round((s.tonight / s.goal) * 100)}% of tonight’s goal`;
+    ? `${s.count} receipts · goal reached! 🍒`
+    : `${s.count} receipt${s.count === 1 ? "" : "s"} · ${Math.round((s.today / s.goal) * 100)}% of today’s ${money(s.goal)} goal`;
 }
 
 function renderParfaitSheet() {
   const s = Hub.summary();
   $("totals").innerHTML = `
-    <div class="tile hot"><span>Tonight</span><b>${money(s.tonight)}</b><small>${s.claims} claims</small></div>
-    <div class="tile"><span>This week</span><b>${money(s.week)}</b><small>from claims after a ring</small></div>
-    <div class="tile"><span>Saved from the bin</span><b>${s.rescued}</b><small>treats that would have been thrown out</small></div>
-    <div class="tile"><span>Seats & votes</span><b>${s.seats + s.votes}</b><small>${s.seats} seats saved · ${s.votes} votes</small></div>`;
-  const max = Math.max(1, ...Object.values(s.byChannel)),
-    names = { discord: "Discord", text: "Text", instagram: "Instagram" };
-  $("channelBars").innerHTML = Object.entries(s.byChannel)
-    .map(
-      ([k, n]) =>
-        `<div class="cbar"><span>${names[k]}</span><i style="width:${(n / max) * 100}%"></i><b>${n}</b></div>`,
-    )
-    .join("");
-  $("soldList").innerHTML =
-    Object.entries(s.sold)
-      .sort((a, b) => b[1].cash - a[1].cash)
+    <div class="tile hot"><span>Today</span><b>${money(s.today)}</b><small>${Math.min(100, Math.round((s.today / s.goal) * 100))}% of the ${money(s.goal)} goal</small></div>
+    <div class="tile"><span>Receipts</span><b>${s.count}</b><small>average ${money(s.average)}</small></div>
+    <div class="tile"><span>This week</span><b>${money(s.week)}</b><small>Monday to today</small></div>
+    <div class="tile"><span>Still to go</span><b>${money(Math.max(0, s.goal - s.today))}</b><small>to fill the parfait</small></div>`;
+  const methods = [
+      ["Card", s.byMethod.card],
+      ["Cash", s.byMethod.cash],
+      ["Not sure", s.byMethod.other],
+    ].filter(([, v]) => v > 0),
+    max = Math.max(1, ...methods.map(([, v]) => v));
+  $("methodBars").innerHTML =
+    methods
       .map(
-        ([item, v]) =>
-          `<li><span>${v.n} × ${item}</span><b>${money(v.cash)}</b></li>`,
+        ([k, v]) =>
+          `<div class="cbar"><span>${k}</span><i style="width:${(v / max) * 100}%"></i><b>${money(v)}</b></div>`,
       )
-      .join("") || "<li><span>Nothing sold from a ring yet.</span></li>";
-  const list = $("ringList");
+      .join("") || '<p class="fine">No receipts yet.</p>';
+  const sold = $("soldList");
+  sold.replaceChildren();
+  const items = Object.entries(s.items).sort((a, b) => b[1].cash - a[1].cash);
+  if (!items.length)
+    sold.innerHTML =
+      "<li><span>Items show up here when a receipt lists them.</span></li>";
+  for (const [name, v] of items.slice(0, 8)) {
+    const li = document.createElement("li");
+    li.innerHTML = "<span></span><b></b>";
+    li.querySelector("span").textContent = `${v.n} × ${name}`;
+    li.querySelector("b").textContent = money(v.cash);
+    sold.append(li);
+  }
+  const list = $("receiptList");
   list.replaceChildren();
-  for (const r of [...s.rings].reverse()) {
-    const li = document.createElement("li"),
-      result =
-        r.kind === "poll"
-          ? Object.entries(
-              (r.votes || []).reduce(
-                (m, v) => ((m[v] = (m[v] || 0) + 1), m),
-                {},
-              ),
-            )
-              .map(([o, n]) => `${o}: ${n}`)
-              .join(" · ") || "votes coming in"
-          : r.kind === "event"
-            ? `${r.claims.length} seats saved`
-            : `${r.claims.length} claimed · ${money(r.claims.reduce((t, c) => t + c.amount, 0))}`;
-    li.innerHTML = `<span class="ring-kind"></span><span class="ring-text"><q></q><small></small></span>`;
-    li.querySelector(".ring-kind").innerHTML =
-      `${icon(Hub.kinds[r.kind].icon, "ico ico-sm")} ${r.time}`;
-    li.querySelector("q").textContent = r.text;
-    li.querySelector("small").textContent = result;
+  for (const sale of [...s.sales].reverse()) {
+    const li = document.createElement("li");
+    li.innerHTML = `<span class="r-time"></span><span class="r-what"></span><b></b><button type="button" class="remove-sale">×</button>`;
+    li.querySelector(".r-time").textContent = sale.time;
+    li.querySelector(".r-what").textContent = [
+      sale.method === "card" ? "Card" : sale.method === "cash" ? "Cash" : null,
+      sale.source === "typed" ? "typed in" : "scanned",
+    ]
+      .filter(Boolean)
+      .join(" · ");
+    li.querySelector("b").textContent = money(sale.amount);
+    const x = li.querySelector("button");
+    x.setAttribute(
+      "aria-label",
+      `Remove the ${money(sale.amount)} receipt from ${sale.time}`,
+    );
+    x.addEventListener("click", () => Hub.removeSale(sale.id));
     list.append(li);
   }
 }
 
-// Every claim, from any channel, lands here.
-let toastsThisRing = 0;
-Hub.onClaim((claim, ring) => {
-  if (toastsThisRing++ < 4)
-    toast(
-      ring.kind === "poll"
-        ? `${claim.name} voted “${claim.choice}” on ${channelName(claim.channel)}`
-        : ring.kind === "event"
-          ? `${claim.name} saved a seat on ${channelName(claim.channel)}`
-          : `${claim.name} claimed on ${channelName(claim.channel)}`,
-      ring.kind === "poll" ? "poll" : ring.kind === "event" ? "check" : "coin",
-    );
-  if (claim.amount > 0) {
-    renderParfait(1);
-    wobble($("parfaitCard"));
-  }
+Hub.onSales((e) => {
+  renderParfait(e.type === "added");
+  if (e.type === "added") wobble($("parfaitCard"));
   if ($("parfaitDialog").open) renderParfaitSheet();
-});
-Hub.onRingDone((ring) => {
-  toastsThisRing = 0;
-  toast(
-    ring.kind === "poll"
-      ? `${ring.votes?.length || 0} votes in. Tap the parfait to see the result.`
-      : ring.kind === "event"
-        ? `${ring.claims.length} seats saved.`
-        : `${ring.claims.length} claimed, ${money(ring.claims.reduce((s, c) => s + c.amount, 0))} in the parfait.`,
-    ring.kind === "poll" ? "poll" : ring.kind === "event" ? "check" : "parfait",
-  );
-  renderParfait();
+  const s = Hub.summary();
+  if (
+    e.type === "added" &&
+    s.today >= s.goal &&
+    s.today - e.sale.amount < s.goal
+  )
+    toast("The parfait is full: today’s goal is reached!", "parfait");
 });
 
 // ── The monthly check-in letter ────────────────────────────────────────
@@ -400,10 +380,8 @@ function grandmaLine() {
     ];
   if (!final)
     lines.unshift("Shall we look at today’s bake? Tap the recipe card.");
-  if (s.tonight >= s.goal)
-    lines.unshift("Look at that parfait! Cherry on top!");
-  else if (s.claims > 8)
-    lines.unshift("The students came! The parfait is growing.");
+  if (s.today >= s.goal) lines.unshift("Look at that parfait! Cherry on top!");
+  else if (s.count > 4) lines.unshift("Busy day! The parfait is growing.");
   if (Hub.monthly().reports[0] && !Hub.monthly().reports[0].seen)
     lines.unshift("A letter came! The neighbours voted.");
   return lines[Math.floor(Math.random() * Math.min(lines.length, 3))];
@@ -460,8 +438,8 @@ $("parfaitCard").addEventListener("click", () => {
   renderParfaitSheet();
   $("parfaitDialog").showModal();
 });
-$("newDay").addEventListener("click", () => {
-  Hub.newDay();
+$("newDay").addEventListener("click", async () => {
+  await Hub.newDay();
   renderRecipe();
   renderParfait();
   renderParfaitSheet();

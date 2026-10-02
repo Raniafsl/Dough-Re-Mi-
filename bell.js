@@ -1,6 +1,6 @@
 // PART 2 · The shop bell: four picture buttons, one sentence (typed or
 // spoken), three channel previews, and the ring itself.
-// Uses Hub.rewrite and Hub.ring; claims come back through the hub.
+// Uses Hub.rewrite and Hub.ring; every ring is a broadcast.
 
 let kind = "treats";
 
@@ -21,6 +21,7 @@ function renderPreviews() {
   $("instaText").textContent = m.insta.text;
   $("discordHead").textContent = m.discord.head;
   $("discordText").textContent = m.discord.text;
+  $("discordActions").hidden = !m.discord.actions.length;
   $("discordActions").replaceChildren(
     ...m.discord.actions.map((a) => {
       const b = document.createElement("span");
@@ -64,7 +65,8 @@ function ringTheBell() {
     ? `Ding! Posted in #${m.channel || "campus-eats"} on Discord. Instagram and text are previews in this build.`
     : m.live
       ? "Ding! Saved on the server, but Discord isn’t connected yet."
-      : "Ding! Demo mode: student replies are simulated.";
+      : "Ding! Demo mode: nothing leaves this browser.";
+  renderRings();
   $("ringBtn").disabled = true;
   setTimeout(() => {
     $("bellDialog").close();
@@ -75,10 +77,38 @@ function ringTheBell() {
   }, 1400);
 }
 
+// Today's broadcasts, with live tallies for any polls.
+function renderRings() {
+  const list = $("ringList"),
+    rings = [...Hub.summary().rings].reverse();
+  list.replaceChildren();
+  if (!rings.length) {
+    list.innerHTML = '<li class="fine">Nothing rung yet today.</li>';
+    return;
+  }
+  for (const r of rings) {
+    const li = document.createElement("li"),
+      tally = r.options
+        ? r.options
+            .map(
+              (o) => `${o}: ${(r.votes || []).filter((v) => v === o).length}`,
+            )
+            .join(" · ")
+        : "Sent to Discord, Instagram and text";
+    li.innerHTML = `<span class="ring-kind">${icon(Hub.kinds[r.kind].icon, "ico ico-sm")} <span></span></span><span class="ring-text"><q></q><small></small></span>`;
+    li.querySelector(".ring-kind span").textContent = r.time;
+    li.querySelector("q").textContent = r.text;
+    li.querySelector("small").textContent = tally;
+    list.append(li);
+  }
+}
+Hub.onVote(() => $("bellDialog").open && renderRings());
+
 $("bellCard").addEventListener("click", () => {
   wobble($("bellIcon"));
   renderKinds();
   renderPreviews();
+  renderRings();
   $("bellDialog").showModal();
   $("saySentence").focus();
 });

@@ -6,7 +6,7 @@
     <title>Countertop · Grandma’s Bakeria</title>
     <meta
       name="description"
-      content="Grandma's countertop: a recipe card that plans the day, a shop bell that tells students everywhere, and a parfait that builds as they claim."
+      content="Grandma's countertop: a recipe card that plans the day, a shop bell that tells students everywhere, and a parfait that fills with the day’s takings."
     />
     <link
       rel="icon"
@@ -235,7 +235,7 @@
                   >$0 tonight</span
                 >
                 <span class="front-note" id="parfaitNote"
-                  >Builds up as students claim</span
+                  >Fills up as you scan receipts</span
                 >
               </button>
             </div>
@@ -415,34 +415,88 @@
         </button>
         <p id="ringStatus" aria-live="polite"></p>
       </div>
+      <section class="rung-today">
+        <h3>Rung today</h3>
+        <ul class="rings" id="ringList"></ul>
+      </section>
     </dialog>
 
-    <!-- The parfait sheet -->
+    <!-- The parfait sheet: today's takings, from scanned receipts -->
     <dialog class="sheet" id="parfaitDialog" aria-labelledby="parfaitTitle">
       <form method="dialog" class="sheet-close">
         <button aria-label="Close">×</button>
       </form>
       <h2 id="parfaitTitle">
-        <i data-icon="parfait" class="ico ico-md"></i> Tonight’s parfait
+        <i data-icon="parfait" class="ico ico-md"></i> Today’s takings
       </h2>
+      <div class="scan-actions">
+        <label class="big-btn scan-btn">
+          <i data-icon="receipt" class="ico ico-md"></i> Scan a receipt
+          <input
+            id="receiptFile"
+            type="file"
+            accept="image/*"
+            capture="environment"
+            class="sr-only"
+          />
+        </label>
+        <button type="button" class="secondary-btn" id="typeAmount">
+          Type it in
+        </button>
+        <button type="button" class="link-btn" id="sampleReceipt">
+          Try a sample receipt
+        </button>
+      </div>
+      <div class="scan-result" id="scanResult" hidden>
+        <img id="receiptPreview" alt="The receipt being read" hidden />
+        <div class="scan-form">
+          <p id="scanStatus" aria-live="polite"></p>
+          <label class="field"
+            >Total on the receipt ($)<input
+              id="saleAmount"
+              type="number"
+              min="0"
+              step="0.01"
+              inputmode="decimal"
+          /></label>
+          <fieldset class="method-picks">
+            <legend>Paid by</legend>
+            <label
+              ><input type="radio" name="saleMethod" value="card" /> Card</label
+            >
+            <label
+              ><input type="radio" name="saleMethod" value="cash" /> Cash</label
+            >
+          </fieldset>
+          <p class="mini-head" id="saleItemsHead" hidden>Items I could read</p>
+          <ul class="sale-items" id="saleItems"></ul>
+          <div class="plan-actions">
+            <button type="button" class="big-btn" id="logSale">
+              Add to today ✓
+            </button>
+            <button type="button" class="link-btn" id="cancelSale">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
       <div class="totals" id="totals"></div>
       <div class="sheet-grid">
         <section>
-          <h3>Where the claims came from</h3>
-          <div id="channelBars"></div>
+          <h3>What sold today</h3>
+          <ul class="sold" id="soldList"></ul>
         </section>
         <section>
-          <h3>What sold tonight</h3>
-          <ul class="sold" id="soldList"></ul>
+          <h3>Card or cash</h3>
+          <div id="methodBars"></div>
         </section>
       </div>
       <section>
-        <h3>Today’s rings</h3>
-        <ul class="rings" id="ringList"></ul>
+        <h3>Today’s receipts</h3>
+        <ul class="receipts" id="receiptList"></ul>
       </section>
       <p class="fine">
-        Claims and sends are simulated for this demo, and everything is saved in
-        this browser only.
+        Receipts are read on this device; check the total before adding it.
         <button class="link-btn" id="newDay">Start a fresh day</button>
       </p>
     </dialog>
@@ -451,6 +505,7 @@
     <script src="icons.js"></script>
     <script src="countertop.js"></script>
     <script src="bell.js"></script>
+    <script src="receipts.js"></script>
     <script src="cafe-scene.js"></script>
   </body>
 </html>

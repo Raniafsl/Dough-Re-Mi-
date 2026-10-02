@@ -16,9 +16,6 @@ db.exec(`
     kind TEXT NOT NULL,
     text TEXT NOT NULL,
     time TEXT NOT NULL,
-    limit_n INTEGER,
-    amount REAL NOT NULL DEFAULT 0,
-    item TEXT NOT NULL DEFAULT 'Treat',
     options TEXT,
     discord TEXT,
     monthly INTEGER NOT NULL DEFAULT 0,
@@ -26,18 +23,25 @@ db.exec(`
     closed INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
-  CREATE TABLE IF NOT EXISTS claims (
+  CREATE TABLE IF NOT EXISTS votes (
     id INTEGER PRIMARY KEY,
     ring_id TEXT NOT NULL REFERENCES rings(id),
     who TEXT NOT NULL,
     name TEXT NOT NULL,
     channel TEXT NOT NULL,
-    amount REAL NOT NULL DEFAULT 0,
-    item TEXT,
-    rescued INTEGER NOT NULL DEFAULT 0,
-    choice TEXT,
+    choice TEXT NOT NULL,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     UNIQUE (ring_id, who)
+  );
+  CREATE TABLE IF NOT EXISTS sales (
+    id TEXT PRIMARY KEY,
+    day TEXT NOT NULL,
+    time TEXT NOT NULL,
+    amount REAL NOT NULL,
+    method TEXT,
+    items TEXT,
+    source TEXT NOT NULL DEFAULT 'typed',
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
   CREATE TABLE IF NOT EXISTS plans (
     day TEXT PRIMARY KEY,
@@ -75,26 +79,13 @@ export function setSetting(key, value) {
   ).run(key, json(value));
 }
 
-// ── Rings and claims ────────────────────────────────────────────────────
+// ── Rings (broadcasts) and poll votes ───────────────────────────────────
 function rowToRing(r) {
-  const claims = db
-    .prepare(
-      "SELECT name, channel, amount, item, rescued, choice FROM claims WHERE ring_id = ? ORDER BY id",
-    )
-    .all(r.id)
-    .map((c) => ({
-      ...c,
-      rescued: !!c.rescued,
-      choice: c.choice ?? undefined,
-    }));
   const ring = {
     id: r.id,
     kind: r.kind,
     text: r.text,
     time: r.time,
-    limit: r.limit_n,
-    amount: r.amount,
-    item: r.item,
     options: parse(r.options),
     discord: parse(r.discord),
     monthly: !!r.monthly,
@@ -102,29 +93,30 @@ function rowToRing(r) {
     closed: !!r.closed,
   };
   if (r.kind === "poll") {
-    ring.votes = claims.map((c) => c.choice);
-    ring.claims = [];
-    ring.byChannel = claims.reduce(
-      (m, c) => ((m[c.channel] = (m[c.channel] || 0) + 1), m),
+    const votes = db
+      .prepare(
+        "SELECT channel, choice FROM votes WHERE ring_id = ? ORDER BY id",
+      )
+      .all(r.id);
+    ring.votes = votes.map((v) => v.choice);
+    ring.byChannel = votes.reduce(
+      (m, v) => ((m[v.channel] = (m[v.channel] || 0) + 1), m),
       {},
     );
-  } else ring.claims = claims;
+  }
   return ring;
 }
 
 export function addRing(ring) {
   db.prepare(
-    `INSERT INTO rings (id, day, kind, text, time, limit_n, amount, item, options, discord, monthly, closes_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO rings (id, day, kind, text, time, options, discord, monthly, closes_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   ).run(
     ring.id,
     ring.day || today(),
     ring.kind,
     ring.text,
     ring.time,
-    ring.limit ?? null,
-    ring.amount ?? 0,
-    ring.item || "Treat",
     json(ring.options),
     json(ring.discord),
     ring.monthly ? 1 : 0,
@@ -146,48 +138,23 @@ export const ringsForDay = (day = today()) =>
     .all(day)
     .map(rowToRing);
 
-// Returns { ok, reason?, remaining, claim }. One claim per person per ring,
-// never past the limit, poll votes only for listed options.
-export function addClaim(ringId, { who, name, channel, choice }) {
+// Votes on polls (bell polls and the monthly check-in). Everything else the
+// bell sends is a broadcast. Returns { ok, reason?, vote }: one vote per
+// person per poll, and only for an option that's on it.
+export function addVote(ringId, { who, name, channel, choice }) {
   const r = db.prepare("SELECT * FROM rings WHERE id = ?").get(ringId);
   if (!r || r.closed) return { ok: false, reason: "gone" };
-  const options = parse(r.options);
-  if (r.kind === "poll" && !options?.includes(choice))
+  if (r.kind !== "poll") return { ok: false, reason: "broadcast" };
+  if (!parse(r.options)?.includes(choice))
     return { ok: false, reason: "choice" };
-  const count = db
-    .prepare("SELECT COUNT(*) AS n FROM claims WHERE ring_id = ?")
-    .get(ringId).n;
-  if (r.kind !== "poll" && r.limit_n && count >= r.limit_n)
-    return { ok: false, reason: "soldout" };
-  const claim = {
-    name,
-    channel,
-    amount: r.kind === "poll" ? 0 : r.amount,
-    item: r.item,
-    rescued: r.kind === "treats",
-    ...(r.kind === "poll" ? { choice } : {}),
-  };
   try {
     db.prepare(
-      "INSERT INTO claims (ring_id, who, name, channel, amount, item, rescued, choice) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    ).run(
-      ringId,
-      who,
-      name,
-      channel,
-      claim.amount,
-      claim.item,
-      claim.rescued ? 1 : 0,
-      choice ?? null,
-    );
+      "INSERT INTO votes (ring_id, who, name, channel, choice) VALUES (?, ?, ?, ?, ?)",
+    ).run(ringId, who, name, channel, choice);
   } catch {
     return { ok: false, reason: "already" };
   }
-  return {
-    ok: true,
-    remaining: r.limit_n ? r.limit_n - count - 1 : null,
-    claim,
-  };
+  return { ok: true, vote: { choice, channel } };
 }
 
 export function closeRing(id) {
@@ -200,10 +167,48 @@ export function resetDay(day = today()) {
     .all(day)
     .map((r) => r.id);
   for (const id of ids) {
-    db.prepare("DELETE FROM claims WHERE ring_id = ?").run(id);
+    db.prepare("DELETE FROM votes WHERE ring_id = ?").run(id);
     db.prepare("DELETE FROM rings WHERE id = ?").run(id);
   }
   db.prepare("DELETE FROM plans WHERE day = ?").run(day);
+  db.prepare("DELETE FROM sales WHERE day = ?").run(day);
+}
+
+// ── Sales (from scanned or typed-in receipts) ───────────────────────────
+export function addSale(sale, day = today()) {
+  db.prepare(
+    "INSERT OR IGNORE INTO sales (id, day, time, amount, method, items, source) VALUES (?, ?, ?, ?, ?, ?, ?)",
+  ).run(
+    sale.id,
+    day,
+    sale.time,
+    sale.amount,
+    sale.method ?? null,
+    json(sale.items || []),
+    sale.source || "typed",
+  );
+}
+export const removeSale = (id) =>
+  db.prepare("DELETE FROM sales WHERE id = ?").run(id).changes > 0;
+export const salesForDay = (day = today()) =>
+  db
+    .prepare(
+      "SELECT id, time, amount, method, items, source FROM sales WHERE day = ? ORDER BY created_at, rowid",
+    )
+    .all(day)
+    .map((r) => ({ ...r, items: parse(r.items) || [] }));
+export const salesCount = (day = today()) =>
+  db.prepare("SELECT COUNT(*) AS n FROM sales WHERE day = ?").get(day).n;
+
+// Monday to today, in dollars.
+export function weekTotal(now = new Date()) {
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+  return db
+    .prepare(
+      "SELECT COALESCE(SUM(amount), 0) AS t FROM sales WHERE day >= ? AND day <= ?",
+    )
+    .get(monday.toLocaleDateString("en-CA"), today()).t;
 }
 
 // ── Plans ───────────────────────────────────────────────────────────────

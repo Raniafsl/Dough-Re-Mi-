@@ -1,75 +1,71 @@
 # Countertop: who owns what, and how the parts talk
 
-The demo, in about 60 seconds: Grandma opens Countertop and flips the recipe card ("midterms week, bake extra cookies"). Later she holds the bell and says "six parfaits left, half price." The judges' phones ping in Discord, they claim, and the parfait keeps building on the big screen.
+**The demo, in about 60 seconds.** Grandma opens Countertop and taps the recipe card ("midterms week, bake extra cookies"), adjusts it and finalises the plan. Later she holds the bell and says "six parfaits left, half price"; it goes out to Discord, Instagram and text at once. As the day goes on she scans her receipts, and the parfait on the big screen builds toward today's goal. A letter on the counter holds the monthly report on what the neighbours want next.
 
-Every part talks to the others only through the **hub** (`hub.js`). Each part can be built and demoed on its own because the hub ships as a working stub.
+Every part talks to the others only through the **hub** (`hub.js`), so each part can be built and demoed on its own.
 
 ## The four parts
 
-| Part                                | Owner | Files                                           | Done when                                                                               |
-| ----------------------------------- | ----- | ----------------------------------------------- | --------------------------------------------------------------------------------------- |
-| 1 · Countertop home and recipe card |       | `index.html`, `countertop.js`, `countertop.css` | The card flips, "Sounds good" stamps the plan, the parfait gains a layer on every claim |
-| 2 · Bell flow                       |       | `bell.js` (+ the bell sheet in `index.html`)    | Voice or typing, four picture buttons, three live previews, ding                        |
-| 3 · Hub                             |       | `hub.js`, later `server/`                       | Plan data, AI rewrite, rings out, claims in, totals                                     |
-| 4 · Discord bot and the pitch       |       | `bot/`, the slides                              | Judges get a ping with a Claim button and the claim reaches the hub                     |
+| Part                                      | Owner | Files                                                       | Done when                                                                                    |
+| ----------------------------------------- | ----- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| 1 · Countertop home, recipe card, parfait |       | `index.html`, `countertop.js`, `countertop.css`, `icons.js` | The plan sheet finalises; the parfait gains a layer for every receipt                        |
+| 2 · Bell flow and receipts                |       | `bell.js`, `receipts.js`                                    | Voice or typing, four picture buttons, three live previews, ding; a receipt scans to a total |
+| 3 · Hub                                   |       | `hub.js`, `server/server.js`, `server/store.js`             | Plan data, rewriting, broadcasts, sales, votes, the monthly check-in                         |
+| 4 · Discord bot and the pitch             |       | `server/bot.js`, the slides                                 | A ring appears in the channel; poll buttons count votes                                      |
 
 ## The hub, in the browser (`Hub.*`)
 
-| Call                                                                                                                                            | Returns                                                                                 | Notes                                                             |
-| ----------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| `Hub.plan()`                                                                                                                                    | `{ reason, items: [{ id, emoji, icon, name, qty, step, when, why }], agenda }`          | Today's suggestions, hardcoded for the demo                       |
-| `Hub.finalPlan()` / `Hub.finalisePlan(items)`                                                                                                   | `null` or `{ at, items }` / –                                                           | Grandma's accepted plan, saved for the day                        |
-| `Hub.mode()` / `Hub.onMode(fn)`                                                                                                                 | `{ live, discord, channel }`                                                            | Drives the header chip and the bell's "sent" message              |
-| `Hub.monthly()`, `Hub.setMonthly()`, `Hub.runMonthly()`, `Hub.closeMonthlyNow()`, `Hub.markReportSeen()`, `Hub.addTrial()`, `Hub.onMonthly(fn)` | see `hub.js`                                                                            | The monthly check-in letter                                       |
-| `Hub.onSync(fn)`                                                                                                                                | –                                                                                       | Fires after the page reloads today from the server database       |
-| `Hub.kinds`                                                                                                                                     | `{ treats, special, event, poll }`, each `{ emoji, label, head, example }`              | The four picture buttons                                          |
-| `Hub.rewrite(kind, sentence)`                                                                                                                   | `{ text, insta: { emoji, head, text }, discord: { head, text, actions[] }, sms, read }` | Rule-based now; swap in the AI rewrite without changing the shape |
-| `Hub.ring({ kind, text })`                                                                                                                      | `ring` `{ id, kind, text, time, claims: [] }`                                           | Sends to every channel                                            |
-| `Hub.onClaim(fn)`                                                                                                                               | –                                                                                       | `fn(claim, ring)` for every claim from any channel                |
-| `Hub.onRingDone(fn)`                                                                                                                            | –                                                                                       | `fn(ring)` when replies settle (stub only; live mode can skip it) |
-| `Hub.summary()`                                                                                                                                 | `{ goal, tonight, week, claims, rescued, seats, votes, byChannel, sold, rings }`        | Feeds the parfait                                                 |
-| `Hub.newDay()`                                                                                                                                  | –                                                                                       | Demo reset                                                        |
+| Call                                                                                                                                            | Returns                                                                          | Notes                                                                                            |
+| ----------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `Hub.plan()`                                                                                                                                    | `{ reason, items: [{ id, icon, name, qty, step, when, why }], agenda }`          | Today's suggestions (hardcoded), plus a trial batch if Grandma added one from the monthly report |
+| `Hub.finalPlan()` / `Hub.finalisePlan(items)`                                                                                                   | `null` or `{ at, items }`                                                        | Grandma's accepted plan, saved for the day                                                       |
+| `Hub.kinds`                                                                                                                                     | `{ treats, special, event, poll }`, each `{ icon, emoji, label, head, example }` | The four picture buttons                                                                         |
+| `Hub.rewrite(kind, sentence)`                                                                                                                   | `{ text, insta, discord: { head, text, actions[] }, sms, read }`                 | Rule-based; swap in an AI rewrite without changing the shape. Only polls have `actions`          |
+| `Hub.ring({ kind, text })`                                                                                                                      | `ring`                                                                           | A broadcast to every channel; polls also collect votes                                           |
+| `Hub.onVote(fn)`                                                                                                                                | –                                                                                | `fn(ring)` when a bell poll gets a vote                                                          |
+| `Hub.addSale({ amount, method, items, source })` / `Hub.removeSale(id)`                                                                         | `sale` / –                                                                       | A receipt; `method` is `card`, `cash` or `null`; `source` is `scan` or `typed`                   |
+| `Hub.onSales(fn)`                                                                                                                               | –                                                                                | `fn({ type: "added", sale })` or `fn({ type: "removed", id })`                                   |
+| `Hub.summary()`                                                                                                                                 | `{ goal, today, count, average, week, byMethod, items, sales, rings }`           | Feeds the parfait                                                                                |
+| `Hub.monthly()`, `Hub.setMonthly()`, `Hub.runMonthly()`, `Hub.closeMonthlyNow()`, `Hub.markReportSeen()`, `Hub.addTrial()`, `Hub.onMonthly(fn)` | see `hub.js`                                                                     | The monthly check-in letter                                                                      |
+| `Hub.mode()` / `Hub.onMode(fn)`                                                                                                                 | `{ live, discord, channel }`                                                     | The header chip and the bell's "sent" message                                                    |
+| `Hub.onSync(fn)`                                                                                                                                | –                                                                                | After the page reloads today from the server                                                     |
+| `Hub.newDay()`                                                                                                                                  | –                                                                                | Demo reset                                                                                       |
 
-A **claim** is `{ name, channel: "discord" | "text" | "instagram", amount, item, rescued, choice? }`. `choice` is set only for poll votes.
+Rule: Parts 1 and 2 never call `fetch`, read storage or talk to Discord. If they need something, it goes in the hub.
 
-Rule: Parts 1 and 2 never read `localStorage`, call `fetch` or talk to Discord. If they need something, it goes in the hub.
+## Two modes, same calls
 
-## Stub mode (what runs today)
+- **Live** (served by `server/`): the SQLite database is the source of truth, rings go on to Discord, and sales and votes from any screen stream in.
+- **Demo** (opened any other way): everything stays in the browser, and bell polls and the monthly check-in get simulated votes.
 
-`hub.js` keeps everything in the browser and simulates student replies a few seconds after each ring, so Parts 1 and 2 can be built and demoed without a server or a bot.
-
-## Live mode (built: `server/`)
-
-`server/server.js` serves the Countertop, keeps the bakery's data in SQLite (`server/store.js`), runs the monthly check-in on a schedule, and runs the Discord bot (`server/bot.js`) in the same process. When the page is opened from that server, `hub.js` finds `/api/health` and switches to live mode on its own; the `Hub.*` calls stay the same.
+## The server (`server/`)
 
 ```
-Countertop ──POST /api/rings──────► server ──posts card + buttons──► Discord #campus-eats
-Countertop ◄──GET /api/events (SSE)── server ◄──button taps──────────── judges
-                                       ▲
-                     POST /api/claims ─┘  (text gateway, or curl for testing)
+Countertop ──POST /api/rings──► server ──posts the message (+ vote buttons for polls)──► Discord
+Countertop ──POST /api/sales──► server (SQLite) ──GET /api/events (SSE)──► every open Countertop
+Discord poll taps ────────────► server ◄── POST /api/votes (text gateway, or curl for testing)
 ```
 
-| Endpoint                                            | Body                                                                                               | Reply                                                                                 |
-| --------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `GET /api/health`                                   | –                                                                                                  | `{ ok, discord, channel }`                                                            |
-| `POST /api/rings`                                   | `{ id, kind, text, limit, amount, item, options, discord: { head, text, actions } }`               | `201 { id, discord }`                                                                 |
-| `POST /api/claims`                                  | `{ ringId, name, channel: "discord" \| "text" \| "instagram", userId?, choice? }`                  | `{ ok, reason?, remaining }`; `reason` is `soldout`, `already`, `gone` or `choice`    |
-| `GET /api/events`                                   | Server-sent events: `claim { ringId, claim }`, `soldout { ringId }`, `status { discord, channel }` | –                                                                                     |
-| `GET /api/rings`                                    | –                                                                                                  | Tonight's rings with their claims                                                     |
-| `GET /api/state`                                    | –                                                                                                  | Today in one call: `{ day, finalPlan, rings, monthly }` (the page loads this on open) |
-| `PUT /api/plan`                                     | `{ at, items }`                                                                                    | Saves Grandma's finalised plan for today                                              |
-| `POST /api/day/reset`                               | –                                                                                                  | Demo reset: clears today and re-seeds the lunch ring                                  |
-| `GET /api/monthly`                                  | –                                                                                                  | `{ question, options, closeDays, current, reports, nextRun, trial }`                  |
-| `POST /api/monthly/options`                         | `{ question, options[], closeDays }`                                                               | What the next automatic poll will ask                                                 |
-| `POST /api/monthly/run`, `POST /api/monthly/close`  | `{ id? }`                                                                                          | Send now, close now (the schedule does both on its own)                               |
-| `POST /api/monthly/seen`, `POST /api/monthly/trial` | – / `{ name, month, day }`                                                                         | Grandma read the report / added the winner as a trial batch                           |
+| Endpoint                                                                             | Body                                                                                          | Reply                                                                     |
+| ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `GET /api/health`                                                                    | –                                                                                             | `{ ok, discord, channel, db }`                                            |
+| `GET /api/state`                                                                     | –                                                                                             | Today in one call: `{ day, finalPlan, rings, sales, week, monthly }`      |
+| `PUT /api/plan`                                                                      | `{ at, items }`                                                                               | Saves today's finalised plan                                              |
+| `POST /api/rings`                                                                    | `{ id, kind, text, options?, discord: { head, text, actions } }`                              | `201 { id, discord }`                                                     |
+| `POST /api/sales`                                                                    | `{ id, time, amount, method, source, items[] }`                                               | `201`                                                                     |
+| `POST /api/sales/remove`                                                             | `{ id }`                                                                                      | Removes a receipt                                                         |
+| `POST /api/votes`                                                                    | `{ ringId, name, channel, userId?, choice }`                                                  | `{ ok, reason? }`; `reason` is `broadcast`, `already`, `gone` or `choice` |
+| `GET /api/events`                                                                    | Server-sent events: `sale`, `sale-removed`, `vote`, `monthly-open`, `monthly-close`, `status` | –                                                                         |
+| `POST /api/day/reset`                                                                | –                                                                                             | Demo reset: clears today and re-seeds two morning receipts                |
+| `GET /api/monthly`, `POST /api/monthly/options`, `/run`, `/close`, `/seen`, `/trial` | –                                                                                             | The monthly check-in (the schedule sends and closes it on its own)        |
 
-The server is the single judge of whether a claim counts: one claim per person per ring, never more than the ring's limit, and poll votes only for listed options. Setup and Discord steps are in [server/README.md](server/README.md). Secrets live in `server/.env` (git-ignored).
+The server is the single judge of a vote: one per person per poll, only for listed options, and never on a broadcast. Setup and Discord steps are in [server/README.md](server/README.md); secrets live in `server/.env` (git-ignored).
 
 ## Demo checklist
 
 1. `cd server && npm start`, open http://localhost:3000, and check the header says **● Live on Discord**.
-2. Tap **Start a fresh day** in the parfait sheet, so the glass starts at the lunch ring.
+2. Tap the parfait → **Start a fresh day**, so the glass starts with the two morning receipts.
 3. Tap the recipe card → adjust if needed → **Finalise today's plan ✓**.
-4. Tap the bell → 🍪 **Treats** → 🎙️ "six parfaits left, half price" → **Ring the bell**.
-5. Judges claim in Discord, the parfait builds, then tap it for tonight's totals.
+4. Tap the bell → **Treats** → 🎙️ "six parfaits left, half price" → **Ring the bell**. Show the message arriving in Discord.
+5. Tap the parfait → **Scan a receipt** (or **Try a sample receipt**) → check the total → **Add to today ✓**. Repeat; the parfait builds.
+6. Tap the letter on the counter for the monthly report → **Add a trial batch to today's plan**.

@@ -1,5 +1,5 @@
 // PART 3 · The hub server. Serves the Countertop, stores the bakery's data in
-// SQLite (store.js), hands rings to the Discord bot, streams every claim back
+// SQLite (store.js), hands rings to the Discord bot, streams sales and votes back
 // to the page, and runs the monthly check-in on its own.
 //
 //   npm start            (from server/, reads server/.env if present)
@@ -55,35 +55,33 @@ const MONTHLY_DEFAULTS = {
   closeDays: 3,
   lastSentMonth: null,
 };
+// A new day starts with two receipts from the morning rush.
 function seedToday() {
-  if (store.ringsForDay().length) return;
-  const id = `lunch-${store.today()}`;
-  store.addRing({
-    id,
-    kind: "treats",
-    text: "Eight maple cookies left from lunch, 2 for $4.",
-    time: "11:40 AM",
-    limit: 8,
-    amount: 2,
-    item: "Maple Cookie",
+  if (store.getSetting(`seeded:${store.today()}`, false)) return;
+  store.setSetting(`seeded:${store.today()}`, true);
+  if (store.salesCount()) return;
+  store.addSale({
+    id: `seed-1-${store.today()}`,
+    time: "8:12 AM",
+    amount: 14.5,
+    method: "card",
+    source: "scan",
+    items: [
+      { name: "Maple Cookies", amount: 7.5 },
+      { name: "Coffee", amount: 7 },
+    ],
   });
-  ["Maya", "Jonah", "Priya", "Theo", "Aisha", "Sam", "Lucas", "Noor"].forEach(
-    (name, i) =>
-      store.addClaim(id, {
-        who: `seed:${name}`,
-        name,
-        channel: [
-          "discord",
-          "text",
-          "discord",
-          "instagram",
-          "text",
-          "discord",
-          "discord",
-          "text",
-        ][i],
-      }),
-  );
+  store.addSale({
+    id: `seed-2-${store.today()}`,
+    time: "9:40 AM",
+    amount: 19.75,
+    method: "cash",
+    source: "scan",
+    items: [
+      { name: "Fall Parfait", amount: 13 },
+      { name: "Chocolate Cupcake", amount: 6.75 },
+    ],
+  });
 }
 if (!store.reportCount()) {
   const last = new Date();
@@ -105,20 +103,18 @@ const monthlySettings = () => ({
   ...store.getSetting("monthly", {}),
 });
 
-// ── Claims (one place decides whether a claim counts) ────────────────────
-export function claim({ ringId, name, userId, channel, choice }) {
+// ── Votes (one place decides whether a vote counts) ──────────────────────
+export function vote({ ringId, name, userId, channel, choice }) {
   if (!CHANNELS.has(channel)) return { ok: false, reason: "channel" };
-  const safeName = String(name || "A student").slice(0, 40),
-    result = store.addClaim(ringId, {
+  const safeName = String(name || "A neighbour").slice(0, 40),
+    result = store.addVote(ringId, {
       who: userId || `${channel}:${safeName}`,
       name: safeName,
       channel,
       choice,
     }),
     ring = store.getRing(ringId);
-  if (!result.ok) return { ...result, ring };
-  broadcast("claim", { ringId, claim: result.claim });
-  if (result.remaining === 0) broadcast("soldout", { ringId });
+  if (result.ok) broadcast("vote", { ringId, choice, channel });
   return { ...result, ring };
 }
 
@@ -226,7 +222,8 @@ function monthlyState() {
 const bot = startBot({
   token: process.env.DISCORD_TOKEN,
   channelId: process.env.DISCORD_CHANNEL_ID,
-  onClaim: claim,
+  onVote: vote,
+  lookupRing: (id) => store.getRing(id),
   onStatus: () => broadcast("status", health()),
 });
 const health = () => ({
@@ -283,6 +280,8 @@ const routes = {
       day: store.today(),
       finalPlan: store.getPlan(),
       rings: store.ringsForDay(),
+      sales: store.salesForDay(),
+      week: store.weekTotal(),
       monthly: monthlyState(),
     };
   },
@@ -304,6 +303,7 @@ const routes = {
 
   "POST /api/day/reset": () => {
     store.resetDay();
+    store.setSetting(`seeded:${store.today()}`, false);
     seedToday();
     return { ok: true };
   },
@@ -317,12 +317,6 @@ const routes = {
       kind: b.kind,
       text: text(b.text, 300),
       time: clock(),
-      limit:
-        Number.isInteger(b.limit) && b.limit > 0
-          ? Math.min(b.limit, 500)
-          : null,
-      amount: Math.max(0, Math.min(Number(b.amount) || 0, 1000)),
-      item: text(b.item, 60) || "Treat",
       options: Array.isArray(b.options)
         ? b.options
             .map((o) => text(o, 60))
@@ -342,21 +336,52 @@ const routes = {
     return [201, { id, discord: posted }];
   },
 
-  // Claims from anything that isn't the Discord bot (a text gateway, or a
+  // Votes from anything that isn't the Discord bot (a text gateway, or a
   // quick test with curl).
-  "POST /api/claims": (b) => {
-    const r = claim({
+  "POST /api/votes": (b) => {
+    const r = vote({
       ringId: text(b.ringId, 40),
       name: text(b.name, 40),
       userId: text(b.userId, 80) || null,
       channel: text(b.channel, 20) || "text",
-      choice: text(b.choice, 60) || undefined,
+      choice: text(b.choice, 60),
     });
-    return [
-      r.ok ? 200 : 409,
-      { ok: r.ok, reason: r.reason, remaining: r.remaining ?? null },
-    ];
+    return [r.ok ? 200 : 409, { ok: r.ok, reason: r.reason }];
   },
+
+  // Receipts Grandma scanned (or typed in) on any screen.
+  "POST /api/sales": (b) => {
+    const amount = Math.round(Number(b.amount) * 100) / 100;
+    if (!(amount > 0 && amount < 100_000) || !text(b.id, 40))
+      return [400, { error: "need an id and an amount" }];
+    const sale = {
+      id: text(b.id, 40),
+      time: text(b.time, 12) || clock(),
+      amount,
+      method: ["card", "cash"].includes(b.method) ? b.method : null,
+      source: ["scan", "typed"].includes(b.source) ? b.source : "typed",
+      items: Array.isArray(b.items)
+        ? b.items
+            .slice(0, 20)
+            .map((i) => ({
+              name: text(i.name, 60),
+              amount: Math.max(0, Number(i.amount) || 0),
+            }))
+        : [],
+    };
+    store.addSale(sale);
+    broadcast("sale", sale);
+    console.log(
+      `🧾 ${sale.time}: $${sale.amount.toFixed(2)}${sale.method ? ` (${sale.method})` : ""}`,
+    );
+    return [201, { ok: true }];
+  },
+  "POST /api/sales/remove": (b) => {
+    const id = text(b.id, 40);
+    if (store.removeSale(id)) broadcast("sale-removed", { id });
+    return { ok: true };
+  },
+  "GET /api/sales": () => store.salesForDay(),
 
   "GET /api/rings": () => store.ringsForDay(),
 
@@ -428,7 +453,8 @@ const server = http.createServer(async (req, res) => {
     if (route) {
       const body = req.method === "GET" ? {} : await readJson(req),
         out = await route(body),
-        [status, data] = Array.isArray(out) ? out : [200, out];
+        [status, data] =
+          Array.isArray(out) && typeof out[0] === "number" ? out : [200, out];
       return send(res, status, data);
     }
     if (pathname.startsWith("/api/"))

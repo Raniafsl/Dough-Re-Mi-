@@ -67,6 +67,9 @@ const ICONS = {
     <circle cx="24" cy="24" r="12" fill="none" stroke="#c99a3c" stroke-width="2"/>
     <path d="M24 23c-2-3.6-7-1.6-4.6 1.6L24 29l4.6-4.4c2.4-3.2-2.6-5.2-4.6-1.6Z" fill="#e8768f"/>`,
   check: `<circle cx="24" cy="24" r="17" fill="#cfe3d1" ${ICON_LINE}/><path d="M16 24.5l5.5 5.5L33 18.5" fill="none" ${ICON_LINE} stroke-width="3"/>`,
+  receipt: `<path d="M11 5h26v38l-4.3-3-4.4 3-4.3-3-4.3 3-4.4-3L11 43Z" fill="#fffaf2" ${ICON_LINE}/>
+    <path d="M17 14h14M17 20h10M17 26h14" stroke="#c9a77f" stroke-width="2" stroke-linecap="round"/>
+    <path d="M17 33h7M28 33h3" stroke="#6b4a3a" stroke-width="2.4" stroke-linecap="round"/>`,
   letter: `<rect x="6" y="12" width="36" height="26" rx="4" fill="#fbe9cf" ${ICON_LINE}/>
     <path d="M7 14l17 13l17-13" fill="none" ${ICON_LINE}/>
     <path d="M7 37l12-11M41 37L29 26" fill="none" stroke="#6b4a3a" stroke-width="1.6" stroke-linecap="round"/>

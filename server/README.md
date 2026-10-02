@@ -3,12 +3,12 @@
 One Node process is the bakery's backend:
 
 - serves the Countertop at `http://localhost:3000`,
-- stores today's plan, every ring and claim, and the monthly reports in a SQLite database (`server/countertop.db`, created on first run, git-ignored), so nothing is lost on a refresh or restart and every screen shows the same thing,
-- posts every bell ring in your Discord channel with **Claim** (or vote) buttons,
-- streams each claim back to the page, so the parfait builds live,
+- stores today's plan, every ring, the day's receipts, poll votes and the monthly reports in a SQLite database (`server/countertop.db`, created on first run, git-ignored), so nothing is lost on a refresh or restart and every screen shows the same thing,
+- posts every bell ring in your Discord channel as a broadcast (polls get vote buttons),
+- streams receipts and votes to every open Countertop, so the parfait builds live on the big screen,
 - runs the **monthly check-in** by itself: on the 1st of each month at 10 AM it posts a “what would you like to see?” poll, closes it after the set number of days (3 by default), posts the results in Discord, and files a report for Grandma.
 
-Without a Discord token it still runs: the page shows **● Server on · Discord not connected**, and you can send test claims with `curl` (below).
+Without a Discord token it still runs: the page shows **● Server on · Discord not connected**, and you can send test votes with `curl` (below).
 
 ## Run it
 
@@ -41,30 +41,25 @@ Then open http://localhost:3000. Opening `index.html` any other way (a file, or 
 
 ## What judges see in Discord
 
-Grandma rings “six parfaits left, half price” and the bot posts a pink card in the channel with a **🍪 Claim one** button and “6, first come first served”. Each tap:
+Grandma rings “six parfaits left, half price” and the bot posts a pink card in the channel: no buttons, just the news, “see you at the counter”. A **Poll** ring (or the monthly check-in) gets one button per option; each tap is one private “Thanks, your vote is in” and one vote on the Countertop. A second tap from the same person is turned away.
 
-- replies privately to that person (“🧁 Saved one for you, Maya! Pick it up at the counter… 5 left.”),
-- adds a layer to the parfait on the Countertop,
-- turns away second claims from the same person, and taps after the last one (“Sorry, they’re all claimed”),
-- switches the button to **All claimed. Thank you!** when the last one goes.
+## Receipts
 
-Polls get one button per option, and events get **✅ I’m coming**.
+Grandma taps the parfait → **Scan a receipt** and takes a photo (or picks one). The receipt is read in the browser with Tesseract, so nothing is uploaded for reading; she checks the total, card or cash, and taps **Add to today**. The sale is saved in the database and every open Countertop's parfait gains a layer. **Try a sample receipt** prints a realistic receipt on screen and reads it, for a demo without paper.
 
 ## Test without Discord
 
-With the server running and a ring sent from the Countertop:
+With the server running and a poll rung from the Countertop:
 
 ```bash
 curl -s localhost:3000/api/rings
 ```
 
-Copy the `id` of the latest ring, then claim it as if by text message:
+Copy the poll's `id`, then vote as if by text message:
 
 ```bash
-curl -s -X POST localhost:3000/api/claims -H 'content-type: application/json' -d '{"ringId":"PASTE-ID","name":"Maya","channel":"text"}'
+curl -s -X POST localhost:3000/api/votes -H 'content-type: application/json' -d '{"ringId":"PASTE-ID","name":"Maya","channel":"text","choice":"Yes"}'
 ```
-
-The parfait on the page gains a layer straight away.
 
 ## The monthly check-in
 
@@ -73,5 +68,5 @@ Grandma edits the question and up to four choices from the letter on her counter
 ## Limits of this build
 
 - Delete `server/countertop.db` to start completely fresh.
-- Instagram and text messages are previews only; the `/api/claims` endpoint is where a text gateway (for example Twilio) would post replies.
-- Anyone who can reach port 3000 can post a claim, so run it on your own laptop or network for the demo.
+- Instagram and text messages are previews only; `/api/votes` is where a text gateway (for example Twilio) would post poll replies.
+- There's no login: anyone who can reach port 3000 can log a sale or vote, so run it on your own laptop or network for the demo.
