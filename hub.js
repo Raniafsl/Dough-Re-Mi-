@@ -386,7 +386,8 @@ const Hub = (() => {
   // GitHub Pages and plain files have no server, so they stay in demo mode.
   if (
     location.protocol.startsWith("http") &&
-    !location.hostname.endsWith("github.io")
+    !location.hostname.endsWith("github.io") &&
+    !window.COUNTERTOP_STANDALONE
   )
     fetch("/api/health")
       .then((r) => (r.ok ? r.json() : null))
