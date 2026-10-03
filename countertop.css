@@ -1640,3 +1640,6 @@ input:focus-visible {
 .demo-on .toasts {
   bottom: 140px;
 }
+.demo-bar[popover]:not(:popover-open) {
+  display: none;
+}

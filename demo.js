@@ -111,13 +111,36 @@
       await wait(1400, id);
       click("parfaitCard");
       await wait(900, id);
-      click("sampleReceipt");
-      for (
-        let t = 0;
-        t < 40 && ($("logSale").disabled || $("scanResult").hidden);
-        t++
-      )
-        await wait(500, id);
+      if (window.COUNTERTOP_STANDALONE) {
+        // Standalone copies of the demo can't load the receipt reader, so
+        // show the sample receipt with its total filled in.
+        const { canvas, expected } = sampleReceipt();
+        showScanForm({
+          preview: canvas.toDataURL("image/png"),
+          source: "scan",
+          total: expected,
+          method: "card",
+          status: "Here’s the total from the receipt. Check it, then add it.",
+        });
+      } else {
+        click("sampleReceipt");
+        for (
+          let t = 0;
+          t < 24 && ($("logSale").disabled || $("scanResult").hidden);
+          t++
+        )
+          await wait(500, id);
+      }
+      // If the reader is slow or offline, carry on with the sample's total.
+      if ($("logSale").disabled || !$("saleAmount").value) {
+        $("saleAmount").disabled = $("logSale").disabled = false;
+        $("saleAmount").value = "28.53";
+        document.querySelector(
+          'input[name="saleMethod"][value="card"]',
+        ).checked = true;
+        $("scanStatus").textContent =
+          "The receipt reader is offline, so the total was typed in.";
+      }
       say(
         "3 · Earn",
         "The app reads the total and card or cash. She checks it, and adds it.",
