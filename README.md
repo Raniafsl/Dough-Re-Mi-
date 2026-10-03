@@ -1,4 +1,4 @@
-# Dough-Re-Mi
+
 
 **Countertop** is Grandma’s Bakeria’s home screen: no menus, no tab bar, just three cards hanging over her counter.
 
