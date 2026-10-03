@@ -1,11 +1,13 @@
-// PART 2 · The shop bell: four picture buttons, one sentence (typed or
+// PART 2 · The shop bell: three picture buttons, one sentence (typed or
 // spoken), three channel previews, and the ring itself.
 // Uses Hub.rewrite and Hub.ring; every ring is a broadcast.
 
 let kind = "treats";
 
 function renderKinds() {
+  // No Poll button: polls go out as the monthly check-in instead.
   $("kinds").innerHTML = Object.entries(Hub.kinds)
+    .filter(([k]) => k !== "poll")
     .map(
       ([k, v]) =>
         `<button type="button" role="radio" aria-checked="${k === kind}" class="kind${k === kind ? " on" : ""}" data-kind="${k}">${icon(v.icon, "ico ico-lg")}${v.label}</button>`,
