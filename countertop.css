@@ -1615,6 +1615,11 @@ input:focus-visible {
   box-shadow: 0 14px 30px rgba(79, 7, 13, 0.2);
   animation: toast-in 0.3s ease-out;
 }
+/* `display: grid` above would otherwise keep the bar on screen between tours. */
+.demo-bar[popover]:not(:popover-open),
+.demo-bar[hidden] {
+  display: none;
+}
 .demo-step {
   grid-column: 1;
   font-size: 12px;
