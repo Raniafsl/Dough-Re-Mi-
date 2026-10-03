@@ -1643,3 +1643,17 @@ input:focus-visible {
 .demo-bar[popover]:not(:popover-open) {
   display: none;
 }
+
+.mic.listening {
+  animation: mic-pulse 1s ease-in-out infinite;
+}
+@keyframes mic-pulse {
+  50% {
+    box-shadow: 0 0 0 8px rgba(232, 118, 143, 0.25);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mic.listening {
+    animation: none;
+  }
+}

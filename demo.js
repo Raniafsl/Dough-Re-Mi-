@@ -39,15 +39,63 @@
     bar.querySelector(".demo-text").textContent = text;
     showBar();
   }
-  async function type(input, text, id) {
-    input.focus();
-    input.value = "";
-    for (const ch of text) {
-      input.value += ch;
-      input.dispatchEvent(new Event("input", { bubbles: true }));
-      await wait(55, id);
-    }
+  // Grandma says it out loud. The voice is the browser's own text-to-speech:
+  // the "Grandma" voice where the system has one (macOS does), otherwise a
+  // slower, lower English voice. Her words fill in as she speaks.
+  function pickVoice() {
+    const voices = window.speechSynthesis?.getVoices() || [],
+      english = voices.filter((v) => /^en/i.test(v.lang));
+    return (
+      english.find((v) => /grandma/i.test(v.name) && /en-US/i.test(v.lang)) ||
+      english.find((v) => /grandma/i.test(v.name)) ||
+      english.find((v) =>
+        /moira|fiona|karen|tessa|samantha|victoria|zira|susan|female/i.test(
+          v.name,
+        ),
+      ) ||
+      english[0] ||
+      null
+    );
   }
+  async function voicesReady() {
+    if (!window.speechSynthesis || speechSynthesis.getVoices().length) return;
+    await new Promise((r) => {
+      speechSynthesis.addEventListener("voiceschanged", r, { once: true });
+      setTimeout(r, 1200);
+    });
+  }
+  async function speak(input, text, id) {
+    const mic = $("micBtn"),
+      words = text.split(" ");
+    mic.hidden = false;
+    mic.classList.add("listening");
+    $("ringStatus").textContent = "Listening… say it now.";
+    input.value = "";
+    let done = !window.speechSynthesis;
+    if (window.speechSynthesis) {
+      await voicesReady();
+      const u = new SpeechSynthesisUtterance(text),
+        voice = pickVoice();
+      if (voice) u.voice = voice;
+      const isGrandma = voice && /grandma/i.test(voice.name);
+      u.rate = isGrandma ? 0.9 : 0.82;
+      u.pitch = isGrandma ? 1 : 0.8;
+      u.onend = u.onerror = () => (done = true);
+      speechSynthesis.cancel();
+      speechSynthesis.speak(u);
+    }
+    // Words appear in step with her speech (timed, since not every voice
+    // reports word boundaries).
+    for (let i = 0; i < words.length; i++) {
+      input.value = words.slice(0, i + 1).join(" ");
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      await wait(380, id);
+    }
+    for (let t = 0; t < 20 && !done; t++) await wait(200, id);
+    mic.classList.remove("listening");
+    $("ringStatus").textContent = "Got it. Check the previews, then ring.";
+  }
+
   const closeSheets = () =>
     document.querySelectorAll("dialog[open]").forEach((d) => d.close());
   const show = (id) =>
@@ -89,14 +137,15 @@
       show("bellCard");
       say(
         "2 · Ring",
-        "Six parfaits are left over. She rings the bell and says one sentence…",
+        "Six parfaits are left over. She taps the mic and just says it…",
       );
       await wait(1400, id);
       click("bellCard");
       await wait(900, id);
       click(document.querySelector('[data-kind="treats"]'));
-      await type($("saySentence"), "Six parfaits left, half price", id);
-      await wait(800, id);
+      await wait(500, id);
+      await speak($("saySentence"), "Six parfaits left, half price", id);
+      await wait(900, id);
       say(
         "2 · Ring",
         "…and it becomes an Instagram post, a Discord message and a text, all at once.",
@@ -212,6 +261,7 @@
   function end() {
     run++;
     active = false;
+    window.speechSynthesis?.cancel();
     hideBar();
     document.body.classList.remove("demo-on");
   }
