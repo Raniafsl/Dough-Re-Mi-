@@ -35,6 +35,8 @@ button {
   font: inherit;
   color: inherit;
   cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
 }
 button:focus-visible,
 a:focus-visible,
