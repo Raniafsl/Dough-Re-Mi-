@@ -121,6 +121,7 @@ function openPlan() {
 
 function renderMode(m) {
   const chip = $("modeChip");
+  if (!chip) return;
   chip.classList.toggle("live", m.live && m.discord);
   chip.textContent = m.live
     ? m.discord

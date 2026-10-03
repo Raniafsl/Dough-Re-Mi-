@@ -86,37 +86,10 @@ input:focus-visible {
   font-size: 15px;
   color: var(--muted);
 }
-.chip {
-  background: var(--cream);
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  padding: 5px 12px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--ink);
-}
 .hello {
   font: 700 38px/1.1 var(--hand);
   margin: 26px 0 4px;
   text-align: center;
-}
-.steps {
-  list-style: none;
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  padding: 0;
-  margin: 0 0 18px;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-.steps li + li::before {
-  content: "→";
-  margin-right: 10px;
-  color: var(--pink-deep);
 }
 
 /* The twine line and hanging cards */
@@ -421,11 +394,6 @@ input:focus-visible {
   margin: 0;
   font-weight: 700;
   color: var(--sage-deep);
-}
-.chip.mode.live {
-  background: #e1e8d5;
-  border-color: var(--sage-deep);
-  color: #3d5a3c;
 }
 
 /* 2 · Shop bell */
@@ -950,10 +918,6 @@ input:focus-visible {
   margin: 18px 0 0;
 }
 
-/* Footer */
-.cafe-scene {
-  margin-top: 44px;
-}
 .foot {
   display: flex;
   justify-content: space-between;
@@ -1058,10 +1022,6 @@ input:focus-visible {
 }
 .emoji {
   line-height: 0;
-}
-.chip .ico-sm {
-  width: 20px;
-  height: 20px;
 }
 .kind .ico-lg {
   margin-bottom: 2px;
@@ -1559,4 +1519,59 @@ input:focus-visible {
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
+}
+
+/* The pavement outside, under the arch */
+.street {
+  margin-top: -2px;
+}
+.street svg {
+  display: block;
+  width: calc(100% + 40px);
+  margin-left: -20px;
+  height: clamp(150px, 19vw, 230px);
+}
+.street-grandma {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: welcome-wave 4s ease-in-out infinite;
+}
+@keyframes welcome-wave {
+  0%,
+  70%,
+  100% {
+    transform: rotate(0);
+  }
+  76% {
+    transform: rotate(-3deg);
+  }
+  82% {
+    transform: rotate(3deg);
+  }
+  88% {
+    transform: rotate(-2deg);
+  }
+}
+.street-say {
+  font: 700 18px var(--hand);
+  fill: var(--pink-deep);
+}
+.street-chalk {
+  font: 700 13px var(--hand);
+  fill: #fdf6e3;
+}
+.street-mat {
+  font: 700 7px var(--body);
+  letter-spacing: 2px;
+  fill: #8a6f5c;
+}
+.street .foot {
+  justify-content: center;
+  gap: 8px 28px;
+  padding-top: 14px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .street-grandma {
+    animation: none;
+  }
 }
