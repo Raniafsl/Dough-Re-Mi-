@@ -222,7 +222,11 @@ function monthlyState() {
 const bot = startBot({
   token: process.env.DISCORD_TOKEN,
   channelId: process.env.DISCORD_CHANNEL_ID,
+  suggestionsChannelId: process.env.DISCORD_SUGGESTIONS_CHANNEL_ID,
+  roleId: process.env.DISCORD_ROLE_ID,
+  guildId: process.env.DISCORD_GUILD_ID,
   onVote: vote,
+  onRing: createRing, // the /ring command in Discord
   lookupRing: (id) => store.getRing(id),
   onStatus: () => broadcast("status", health()),
 });
@@ -270,6 +274,35 @@ async function serveFile(req, res, pathname) {
   }
 }
 
+// A ring from the Countertop's bell (POST /api/rings) or /ring in Discord.
+async function createRing(b) {
+  const id = text(b.id, 40);
+  if (!id || !KINDS.has(b.kind) || !text(b.text, 300))
+    return [400, { error: "need id, kind and text" }];
+  const ring = store.addRing({
+    id,
+    kind: b.kind,
+    text: text(b.text, 300),
+    time: clock(),
+    options: Array.isArray(b.options)
+      ? b.options
+          .map((o) => text(o, 60))
+          .filter(Boolean)
+          .slice(0, 4)
+      : null,
+    discord: {
+      head: text(b.discord?.head, 200),
+      text: text(b.discord?.text, 1000),
+      actions: Array.isArray(b.discord?.actions)
+        ? b.discord.actions.map((a) => text(a, 70)).slice(0, 4)
+        : [],
+    },
+  });
+  const posted = await bot.announce(ring);
+  console.log(`🔔 ${ring.kind}: "${ring.text}"${posted ? " → Discord" : ""}`);
+  return [201, { id, discord: posted }];
+}
+
 const routes = {
   "GET /api/health": () => health(),
 
@@ -308,33 +341,7 @@ const routes = {
     return { ok: true };
   },
 
-  "POST /api/rings": async (b) => {
-    const id = text(b.id, 40);
-    if (!id || !KINDS.has(b.kind) || !text(b.text, 300))
-      return [400, { error: "need id, kind and text" }];
-    const ring = store.addRing({
-      id,
-      kind: b.kind,
-      text: text(b.text, 300),
-      time: clock(),
-      options: Array.isArray(b.options)
-        ? b.options
-            .map((o) => text(o, 60))
-            .filter(Boolean)
-            .slice(0, 4)
-        : null,
-      discord: {
-        head: text(b.discord?.head, 200),
-        text: text(b.discord?.text, 1000),
-        actions: Array.isArray(b.discord?.actions)
-          ? b.discord.actions.map((a) => text(a, 70)).slice(0, 4)
-          : [],
-      },
-    });
-    const posted = await bot.announce(ring);
-    console.log(`🔔 ${ring.kind}: "${ring.text}"${posted ? " → Discord" : ""}`);
-    return [201, { id, discord: posted }];
-  },
+  "POST /api/rings": createRing,
 
   // Votes from anything that isn't the Discord bot (a text gateway, or a
   // quick test with curl).
