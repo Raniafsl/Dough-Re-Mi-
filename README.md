@@ -18,6 +18,10 @@ Run the backend (`cd server && npm install && npm start`, then open http://local
 
 ## Back office (`studio.html`)
 
+## Pitch demo
+
+Open the Countertop with `#demo` on the end (for example https://raniafsl.github.io/Dough-Re-Mi-/#demo, or http://localhost:3000/#demo) and it plays itself in about a minute, with captions: plan → ring → scan receipts until the parfait is full → the monthly report → Grandma. **Shift + D** starts or stops it at any time, **Esc** stops it. It starts a fresh day first. On the live server the bell really posts to Discord, so use the GitHub Pages link if you only want to show it.
+
 ## The challenge
 
 A buildathon prompt: Grandma's Bakeria is a neighbourhood favourite for studying, first dates and reunions, but **The Bakery**, a nationwide chain, opened right next door with a suspiciously similar "Autumn Parfait". Build systems that save Grandma time and money so she can focus on a new Fall Parfait.

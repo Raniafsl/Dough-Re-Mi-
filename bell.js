@@ -130,19 +130,59 @@ $("saySentence").addEventListener("keydown", (e) => {
 $("ringBtn").addEventListener("click", ringTheBell);
 
 // Speaking works where the browser supports it (Chrome, Edge, Safari);
-// typing always works.
+// typing always works. Chrome sends the audio to Google to transcribe, so it
+// needs an internet connection; Firefox has no speech support, so the mic
+// button stays hidden there.
 const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+let listening = null;
+const micSay = (text) => ($("ringStatus").textContent = text);
+const MIC_ERRORS = {
+  "not-allowed":
+    "The microphone is blocked. Allow it from the address bar, or type the sentence instead.",
+  "service-not-allowed":
+    "This browser won’t allow speech here. Type the sentence instead.",
+  "no-speech": "I didn’t catch that. Tap the mic and try again.",
+  "audio-capture": "No microphone found. Type the sentence instead.",
+  network: "Speech needs an internet connection. Typing works too.",
+};
 if (Speech) {
   $("micBtn").hidden = false;
   $("micBtn").addEventListener("click", () => {
+    if (listening) return listening.stop(); // tap again to finish
     const rec = new Speech();
     rec.lang = "en-CA";
+    rec.interimResults = true; // words appear while she speaks
+    rec.onstart = () => {
+      $("micBtn").classList.add("listening");
+      $("micBtn").setAttribute("aria-label", "Stop listening");
+      micSay("Listening… say it now.");
+    };
     rec.onresult = (e) => {
-      $("saySentence").value = e.results[0][0].transcript;
+      $("saySentence").value = [...e.results]
+        .map((r) => r[0].transcript)
+        .join("");
       renderPreviews();
     };
-    rec.onend = () => $("micBtn").classList.remove("listening");
-    $("micBtn").classList.add("listening");
-    rec.start();
+    rec.onerror = (e) =>
+      micSay(MIC_ERRORS[e.error] || "The mic stopped. Try again, or type it.");
+    rec.onend = () => {
+      listening = null;
+      $("micBtn").classList.remove("listening");
+      $("micBtn").setAttribute("aria-label", "Say it out loud");
+      if ($("ringStatus").textContent.startsWith("Listening"))
+        micSay(
+          $("saySentence").value
+            ? "Got it. Check the previews, then ring."
+            : "",
+        );
+    };
+    listening = rec;
+    micSay("If the browser asks, allow the microphone, then speak.");
+    try {
+      rec.start();
+    } catch {
+      listening = null;
+      micSay("The mic couldn’t start. Type the sentence instead.");
+    }
   });
 }
