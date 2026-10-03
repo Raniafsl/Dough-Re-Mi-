@@ -12,7 +12,7 @@
 
 Open `index.html` for the Countertop. The earlier, fuller prototype is the **back office** at `studio.html`. How the four parts fit together, and the live-mode plan with the Discord bot, are in [CONTRACT.md](CONTRACT.md).
 
-Run the backend (`cd server && npm install && npm start`, then open http://localhost:3000) for the real thing: a SQLite database, the Discord bot, receipts that sync to every screen, and the automatic monthly check-in. Opened as a plain file, the Countertop runs in demo mode with simulated replies. The illustrated café scene is the footer of both pages.
+Run the backend (`cd server && npm install && npm start`, then open http://localhost:3000) for the real thing: a SQLite database, the Discord bot, receipts that sync to every screen, and the automatic monthly check-in. Opened as a plain file, the Countertop runs in demo mode with simulated replies. The Countertop ends on the pavement outside the shop; the back office keeps the full illustrated café scene.
 
 ---
 
@@ -62,7 +62,6 @@ Open http://localhost:8000. Stop the server with Ctrl+C.
 | `countertop.js` / `countertop.css` | Part 1 · home screen, recipe card and parfait                                             |
 | `bell.js`                          | Part 2 · the bell: voice, four buttons, three previews                                    |
 | `receipts.js`                      | Receipt scanning (Tesseract OCR in the browser)                                           |
-| `cafe-scene.css`                   | Styles for the illustrated footer                                                         |
 | `studio.html`                      | Back office: workspaces, kitchen map and order counter                                    |
 | `style.css`                        | Theme, responsive layout and print styling                                                |
 | `app.js`                           | Tabs, customer flow and financial calculations                                            |
@@ -73,7 +72,8 @@ Open http://localhost:8000. Stop the server with Ctrl+C.
 | `ledger.js`                        | Savings ledger, receipt and order wins                                                    |
 | `vote.js`                          | Regulars' vote on the new Fall Parfait                                                    |
 | `testimonials.js`                  | Testimonials, ratings comparison and kind-word form                                       |
-| `cafe-scene.js`                    | Illustrated café scene above the footer                                                   |
+| `cafe-scene.js` / `cafe-scene.css` | Illustrated café scene (back office footer)                                               |
+| `street-scene.js`                  | The pavement outside the shop (Countertop footer)                                         |
 | `grandma-v2.png`                   | AI-generated Grandma character                                                            |
 | `bakery-reference.jpeg`            | User-supplied storefront reference illustration                                           |
 
