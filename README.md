@@ -1,12 +1,12 @@
-
+** a project made for the Ramp X Socratica Buildathon !! **
 
 **Countertop** is Grandma’s Bakeria’s home screen: no menus, no tab bar, just three cards hanging over her counter.
 
 | Card           | Grandma’s problem                                        | What it does                                                                                                     |
 | -------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| 📜 Recipe card | She guesses what to bake, so she wastes food or runs out | Flips to today’s plan: what to bake, how many, and one plain reason                                              |
-| 🔔 Shop bell   | The Bakery can afford marketing; she can’t               | One sentence becomes Instagram, Discord and text messages, sent at once                                          |
-| 🍨 Parfait     | She can’t see what’s working                             | She scans each receipt; the parfait builds toward today’s goal, with card/cash, best sellers and the week so far |
+| Recipe card | She guesses what to bake, so she wastes food or runs out | Flips to today’s plan: what to bake, how many, and one plain reason                                              |
+|  Shop bell  | The Bakery can afford marketing; she can’t               | One sentence becomes Instagram, Discord and text messages, sent at once                                          |
+| Parfait     | She can’t see what’s working                             | She scans each receipt; the parfait builds toward today’s goal, with card/cash, best sellers and the week so far |
 
 **Plan, Ring, Earn.** Students never download anything: the bell’s message reaches them where they already are, and the parfait shows what the day actually brought in.
 
@@ -47,15 +47,6 @@ A buildathon prompt: Grandma's Bakeria is a neighbourhood favourite for studying
 4. Open **See the math**, then press **Fund the new Fall Parfait →**.
 5. Show the regulars' vote picking the recipe The Bakery can't copy.
 
-## Run locally
-
-No package installation, API key or build step is needed. From this folder:
-
-```bash
-python3 -m http.server 8000
-```
-
-Open http://localhost:8000. Stop the server with Ctrl+C.
 
 ## Files
 
@@ -81,15 +72,7 @@ Open http://localhost:8000. Stop the server with Ctrl+C.
 | `grandma-v2.png`                   | AI-generated Grandma character                                                            |
 | `bakery-reference.jpeg`            | User-supplied storefront reference illustration                                           |
 
-## A quick demo
 
-1. Open **Save Grandma’s day**.
-2. Click **Bring in the rush order**.
-3. Show why the $180 order initially loses money.
-4. Enable the shorter route and later pickup.
-5. Replay Grandma’s route, inspect the linked costs and print the receipt.
-
-With the default assumptions, incremental profit changes from **−$59.47 to $32.60**. This is a model, not measured business performance.
 
 ## Calculation assumptions
 
@@ -109,10 +92,4 @@ With the default assumptions, incremental profit changes from **−$59.47 to $32
 
 Movement and motion sensors are simulated; there is no camera, hardware sensor or video tracking. Customer orders are local demo scenarios. Quote actions do not send messages. Pantry stock, ledger wins, event sign-ups, votes, donations and added testimonials are saved only in the visitor's browser (localStorage). Donations are demo pledges and take no payment. There is no backend or authentication. Testimonials, ratings and the chain comparison are sample content for the fictional story. The Grandma story is fictional. Google Fonts loads externally; system fonts are used as fallback.
 
-## Artwork
 
-Grandma was generated for the project. The storefront is a user-provided reference image whose creator/license has not been verified. Keep this repository private until its reuse rights are confirmed or replace that image with your own artwork. No license for third-party reference artwork is granted by this repository.
-
-## Publish on GitHub Pages (optional)
-
-The site files live at the repository root. In GitHub, choose **Settings → Pages → Deploy from a branch → main → / (root)**, when Pages is available for your repository/account. Pages access can differ from repository access; choose the audience intentionally.
